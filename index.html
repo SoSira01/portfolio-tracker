@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
+<html lang="en" data-theme="corporate">
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asset Portfolio Tracker</title>
@@ -13,7 +13,7 @@
                 extend: {}
             },
             daisyui: {
-                themes: ["light", "dark", "corporate", "business"]
+                themes: ["light", "dark", "corporate", "business", "garden"]
             }
         }
     </script>
@@ -59,22 +59,53 @@
             z-index: 1000;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+
+        /* Fix for hamburger menu in fullscreen */
+        .drawer-side {
+            z-index: 999;
+        }
+        
+        .drawer-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .drawer-side .menu {
+            background-color: hsl(var(--b1));
+        }
+        
+        .navbar-start label.btn {
+            position: relative;
+            z-index: 100;
+            cursor: pointer;
+        }
+        
+        /* Ensure the hamburger icon stands out */
+        .navbar-start label.btn svg {
+            stroke: currentColor;
+        }
+        
+        /* Make sure the menu items are clickable */
+        .drawer-side .menu a {
+            cursor: pointer;
+        }
     </style>
+    <!-- Add this in the head section, just before your existing scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="drawer">
     <input id="my-drawer" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content">
         <!-- Navbar -->
-        <div class="navbar bg-primary text-primary-content shadow-lg mb-4">
+        <div class="navbar bg-base-100 shadow-lg mb-4">
             <div class="navbar-start">
-                <label for="my-drawer" class="btn btn-ghost drawer-button lg:hidden">
+                <label for="my-drawer" class="btn btn-ghost drawer-button">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </label>
                 <h1 class="text-xl font-bold">Asset Portfolio Tracker</h1>
             </div>
             <div class="navbar-end">
-                <button class="btn btn-ghost tooltip" data-tip="Refresh Stock Prices" id="refresh-btn">
+                <button class="btn btn-ghost tooltip tooltip-bottom" data-tip="Refresh Stock Prices" id="refresh-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
@@ -281,9 +312,9 @@
                 <li><a data-tab="cash">Cash & Others</a></li>
                 <li><a data-tab="overview">Portfolio Overview</a></li>
                 <li class="menu-title mt-4">Settings</li>
-                <li><a>Theme Settings</a></li>
-                <li><a>Export Data</a></li>
-                <li><a>About</a></li>
+                <li><a onclick="document.getElementById('theme-modal').showModal()">Theme Settings</a></li>
+                <li><a id="export-data-btn">Export Data</a></li>
+                <li><a onclick="document.getElementById('about-modal').showModal()">About</a></li>
             </ul>
         </div>
     </div>
@@ -297,7 +328,15 @@
                     <label class="label">
                         <span class="label-text">Symbol</span>
                     </label>
-                    <input type="text" id="stock-symbol" placeholder="e.g. MSFT" class="input input-bordered w-full" required />
+                    <input type="text" id="stock-symbol" placeholder="Type to search (e.g. MSFT, AAPL)" class="input input-bordered w-full" required />
+                    <!-- Autocomplete dropdown will appear here -->
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Name</span>
+                        <span class="label-text-alt">(Auto-populated)</span>
+                    </label>
+                    <input type="text" id="stock-name" placeholder="e.g. Microsoft Corporation" class="input input-bordered w-full" />
                 </div>
                 <div class="form-control w-full">
                     <label class="label">
@@ -442,10 +481,8 @@
         <div class="modal-box">
             <h3 class="font-bold text-lg">Choose Theme</h3>
             <div class="grid grid-cols-2 gap-4 py-4">
-                <button class="btn" onclick="setTheme('light')">Light</button>
-                <button class="btn" onclick="setTheme('dark')">Dark</button>
-                <button class="btn" onclick="setTheme('corporate')">Corporate</button>
-                <button class="btn" onclick="setTheme('business')">Business</button>
+                <button class="btn btn-primary" onclick="setTheme('corporate')">Light (Default)</button>
+                <button class="btn" onclick="setTheme('dracula')">Dark</button>
             </div>
             <div class="modal-action">
                 <form method="dialog">
@@ -505,6 +542,39 @@
         </form>
     </dialog>
 
+    <!-- Add this after your other modal dialogs -->
+    <dialog id="about-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">About Asset Portfolio Tracker</h3>
+            <div class="py-4">
+                <div class="flex flex-col items-center mb-4">
+                    <div class="avatar">
+                        <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                            <img src="https://avatars.githubusercontent.com/u/47183080?s=400&u=2c5be248177bd1d2fe93352834d1977df63f002f&v=4" alt="Profile" />
+                        </div>
+                    </div>
+                    <h2 class="text-xl font-bold mt-2">Siraphob Phairoh</h2>
+                    <a href="https://github.com/SoSira01" target="_blank" class="text-primary flex items-center mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1" viewBox="0 0 16 16">
+                    <li>Track stocks, bonds, and cash assets in one place</li>
+                    <li>View portfolio allocation and performance</li>
+                    <li>Support for multiple currencies with automatic conversion</li>
+                    <li>Real-time price updates for stocks</li>
+                    <li>Responsive design for desktop and mobile</li>
+                </ul>
+                <p class="mt-4 text-sm opacity-75">Version 1.0 - Created 2025</p>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
@@ -547,10 +617,8 @@
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             // Load saved theme if any
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                setTheme(savedTheme);
-            }
+            const savedTheme = localStorage.getItem('theme') || 'corporate';
+            setTheme(savedTheme);
             
             // Initialize tabs
             tabs.forEach(tab => {
@@ -639,6 +707,28 @@
             
             // Update the exchange rates table
             updateExchangeRatesTable();
+
+            // Set up the About modal link
+            const aboutLink = document.querySelector('.drawer-side li a:nth-child(1)');
+            if (aboutLink && aboutLink.textContent.trim() === 'About') {
+                aboutLink.addEventListener('click', () => {
+                    document.getElementById('about-modal').showModal();
+                    document.getElementById('my-drawer').checked = false;
+                });
+            }
+
+            // Set up Export Data functionality
+            document.getElementById('export-data-btn').addEventListener('click', function() {
+                try {
+                    exportPortfolioData();
+                } catch (err) {
+                    console.error("Export clicked error:", err);
+                    showToast('Failed to export data. Check console for details.', 'error');
+                }
+            });
+
+            // Add this inside the DOMContentLoaded event listener where you initialize your app
+            setupStockSymbolAutocomplete();
         });
         
         // Tab functionality
@@ -679,41 +769,58 @@
             const price = parseFloat(document.getElementById('stock-price').value);
             const date = document.getElementById('stock-date').value;
             
-            const newStock = {
-                id: Date.now().toString(),
-                symbol,
-                shares,
-                purchasePrice: price,
-                purchaseDate: date,
-                currentPrice: price,
-                name: symbol, // Will be updated from API
-                change: 0,
-                changePercent: 0
-            };
+            // Show loading state
+            const submitButton = addStockForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Verifying...';
             
-            stockData.push(newStock);
-            saveStockData();
-            
+            // First verify the stock exists by fetching its current data
             fetchStockDetails(symbol)
                 .then(data => {
-                    if (data) {
-                        const stockIndex = stockData.findIndex(s => s.id === newStock.id);
-                        if (stockIndex !== -1) {
-                            stockData[stockIndex].name = data.name || symbol;
-                            stockData[stockIndex].currentPrice = data.price || price;
-                            saveStockData();
-                            renderStockList();
-                            updateSummary();
-                        }
+                    if (data && (data.name || data.price)) {
+                        // Stock exists in the market, create the new stock object
+                        const newStock = {
+                            id: Date.now().toString(),
+                            symbol,
+                            shares,
+                            purchasePrice: price,
+                            purchaseDate: date,
+                            currentPrice: data.price || price,
+                            name: data.name || symbol,
+                            change: 0,
+                            changePercent: 0
+                        };
+                        
+                        // Add to portfolio
+                        stockData.push(newStock);
+                        saveStockData();
+                        renderStockList();
+                        updateSummary();
+                        addStockModal.close();
+                        addStockForm.reset();
+                        
+                        showToast(`${symbol} added successfully!`, 'success');
+                        
+                        // Also fetch the current price
+                        fetchCurrentStockPrice(symbol);
+                        
+                    } else {
+                        // Stock validation failed
+                        showToast(`Could not verify stock symbol '${symbol}'. Please check the symbol and try again.`, 'error');
                     }
+                })
+                .catch(error => {
+                    console.error("Error verifying stock:", error);
+                    showToast(`Error verifying stock symbol '${symbol}'.`, 'error');
+                })
+                .finally(() => {
+                    // Restore button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
                 });
-            
-            renderStockList();
-            updateSummary();
-            addStockModal.close();
-            addStockForm.reset();
         }
-        
+
         function handleAddBond(e) {
             e.preventDefault();
             
@@ -1159,10 +1266,23 @@
                             name: data.Name,
                             sector: data.Sector,
                             industry: data.Industry,
-                            description: data.Description
+                            description: data.Description,
+                            exists: true
                         };
                     }
-                    return null;
+                    
+                    // If we couldn't get details, try getting at least the price to confirm existence
+                    return fetchCurrentStockPrice(symbol)
+                        .then(priceResult => {
+                            if (priceResult && priceResult.success) {
+                                return {
+                                    name: symbol, // Default to symbol if no name found
+                                    price: priceResult.price,
+                                    exists: true
+                                };
+                            }
+                            return null;
+                        });
                 })
                 .catch(() => {
                     return null;
@@ -1354,7 +1474,7 @@
         }
         
         function deleteCash(id) {
-            cashData = cashData.filter(cash => cash.id !== id);
+            cashData = cashData.filter(c => c.id !== id);
             saveCashData();
             renderCashList();
             updateSummary();
@@ -1690,6 +1810,343 @@
                     document.body.removeChild(modal);
                 }, 300);
             });
+        }
+
+        // Add this function to your script section
+        function exportPortfolioData() {
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Format date for filename
+            const dateStr = new Date().toISOString().split('T')[0];
+            
+            try {
+                // Create stock sheet if there's data
+                if (stockData.length > 0) {
+                    // Format stock data for export
+                    const stockExport = stockData.map(stock => ({
+                        Symbol: stock.symbol,
+                        Name: stock.name || stock.symbol,
+                        Shares: stock.shares,
+                        'Purchase Price': stock.purchasePrice,
+                        'Purchase Date': stock.purchaseDate,
+                        'Current Price': stock.currentPrice,
+                        'Market Value': stock.shares * stock.currentPrice,
+                        'Gain/Loss': (stock.shares * stock.currentPrice) - (stock.shares * stock.purchasePrice),
+                        'Gain/Loss %': (((stock.shares * stock.currentPrice) - (stock.shares * stock.purchasePrice)) / (stock.shares * stock.purchasePrice) * 100).toFixed(2) + '%'
+                    }));
+                    
+                    // Create worksheet and add to workbook
+                    const ws = XLSX.utils.json_to_sheet(stockExport);
+                    XLSX.utils.book_append_sheet(wb, ws, "Stocks");
+                }
+                
+                // Create bond sheet if there's data
+                if (bondData.length > 0) {
+                    // Format bond data for export
+                    const bondExport = bondData.map(bond => {
+                        // Calculate current value and gain/loss
+                        const currentValue = bond.currentValue;
+                        const gainLoss = currentValue - bond.purchasePrice;
+                        const gainLossPercent = (gainLoss / bond.purchasePrice) * 100;
+                        
+                        return {
+                            Name: bond.name,
+                            Type: capitalizeFirstLetter(bond.type),
+                            'Face Value': bond.faceValue,
+                            'Purchase Price': bond.purchasePrice,
+                            'Yield (%)': bond.yieldRate,
+                            'Maturity Date': bond.maturityDate,
+                            'Current Value': currentValue,
+                            'Gain/Loss': gainLoss,
+                            'Gain/Loss %': gainLossPercent.toFixed(2) + '%'
+                        };
+                    });
+                    
+                    // Create worksheet and add to workbook
+                    const ws = XLSX.utils.json_to_sheet(bondExport);
+                    XLSX.utils.book_append_sheet(wb, ws, "Bonds");
+                }
+                
+                // Create cash sheet if there's data
+                if (cashData.length > 0) {
+                    // Format cash data for export
+                    const cashExport = cashData.map(cash => ({
+                        Name: cash.name,
+                        Type: capitalizeFirstLetter(cash.type),
+                        Value: cash.value,
+                        Currency: cash.currency,
+                        'USD Equivalent': convertToUSD(cash.value, cash.currency),
+                        Notes: cash.notes || ''
+                    }));
+                    
+                    // Create worksheet and add to workbook
+                    const ws = XLSX.utils.json_to_sheet(cashExport);
+                    XLSX.utils.book_append_sheet(wb, ws, "Cash");
+                }
+                
+                // Create summary sheet
+                const summaryData = [];
+                
+                // Calculate total values
+                const totalStockValue = stockData.reduce((sum, stock) => sum + (stock.shares * stock.currentPrice), 0);
+                const totalBondValue = bondData.reduce((sum, bond) => sum + bond.currentValue, 0);
+                const totalCashValue = cashData.reduce((sum, cash) => sum + convertToUSD(cash.value, cash.currency), 0);
+                const portfolioTotal = totalStockValue + totalBondValue + totalCashValue;
+                
+                // Add summary rows
+                summaryData.push({ Category: 'Stocks', 'Count': stockData.length, 'Value (USD)': totalStockValue, 'Allocation': ((totalStockValue / portfolioTotal) * 100).toFixed(2) + '%' });
+                summaryData.push({ Category: 'Bonds', 'Count': bondData.length, 'Value (USD)': totalBondValue, 'Allocation': ((totalBondValue / portfolioTotal) * 100).toFixed(2) + '%' });
+                summaryData.push({ Category: 'Cash & Others', 'Count': cashData.length, 'Value (USD)': totalCashValue, 'Allocation': ((totalCashValue / portfolioTotal) * 100).toFixed(2) + '%' });
+                summaryData.push({ Category: 'Total Portfolio', 'Count': stockData.length + bondData.length + cashData.length, 'Value (USD)': portfolioTotal, 'Allocation': '100%' });
+                
+                // Create summary worksheet
+                const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, summaryWs, "Summary");
+                
+                // Generate Excel file and trigger download
+                XLSX.writeFile(wb, `Portfolio_Export_${dateStr}.xlsx`);
+                
+                // Show confirmation
+                showToast('Portfolio data exported successfully!', 'success');
+                
+                // Close the drawer if it's open
+                document.getElementById('my-drawer').checked = false;
+                
+            } catch (error) {
+                console.error("Export error:", error);
+                showToast('Error exporting data. Please try again.', 'error');
+            }
+        }
+
+        // Add this new function to specifically fetch current price
+        function fetchCurrentStockPrice(symbol) {
+            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=DEMO`;
+            
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    try {
+                        // Parse the response
+                        const quoteData = data['Global Quote'];
+                        if (quoteData && quoteData['05. price']) {
+                            const price = parseFloat(quoteData['05. price']);
+                            const change = parseFloat(quoteData['09. change']);
+                            const changePercent = parseFloat(quoteData['10. change percent'].replace('%', ''));
+                            
+                            // Update all stocks with this symbol
+                            stockData.forEach(stock => {
+                                if (stock.symbol === symbol) {
+                                    stock.currentPrice = price;
+                                    stock.change = change;
+                                    stock.changePercent = changePercent;
+                                }
+                            });
+                            
+                            // Save and update display
+                            saveStockData();
+                            renderStockList();
+                            updateSummary();
+                            
+                            return { symbol, price, success: true };
+                        }
+                        return { symbol, success: false, error: 'No price data found' };
+                    } catch (error) {
+                        return { symbol, success: false, error: error.message };
+                    }
+                })
+                .catch(error => {
+                    return { symbol, success: false, error: error.message };
+                });
+        }
+
+        // Add this new function for the stock symbol autocomplete with API integration
+        function setupStockSymbolAutocomplete() {
+            const symbolInput = document.getElementById('stock-symbol');
+            if (!symbolInput) return;
+            
+            // Create autocomplete container
+            let autocompleteContainer = document.createElement('div');
+            autocompleteContainer.className = 'bg-base-100 shadow-lg rounded-md mt-1 absolute z-50 w-full max-h-60 overflow-y-auto hidden';
+            autocompleteContainer.id = 'symbol-autocomplete';
+            
+            // Position the container properly
+            symbolInput.parentNode.style.position = 'relative';
+            symbolInput.parentNode.appendChild(autocompleteContainer);
+            
+            // Add event listeners for input
+            symbolInput.addEventListener('input', debounce(function() {
+                const query = symbolInput.value.trim();
+                if (query.length < 1) {
+                    autocompleteContainer.classList.add('hidden');
+                    return;
+                }
+                
+                // Show loading indicator
+                showLoading();
+                
+                // Search for stocks using API
+                searchStockSymbols(query)
+                    .then(results => {
+                        renderSearchResults(results);
+                    })
+                    .catch(error => {
+                        console.error('Error searching stocks:', error);
+                        autocompleteContainer.innerHTML = `
+                            <div class="p-3 text-sm text-error">
+                                Error searching for stocks. Please try again.
+                            </div>
+                        `;
+                        autocompleteContainer.classList.remove('hidden');
+                    })
+                    .finally(() => {
+                        hideLoading();
+                    });
+            }, 500)); // Debounce to prevent too many API calls
+            
+            // Hide autocomplete when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!symbolInput.contains(e.target) && !autocompleteContainer.contains(e.target)) {
+                    autocompleteContainer.classList.add('hidden');
+                }
+            });
+            
+            // Show loading indicator
+            function showLoading() {
+                autocompleteContainer.innerHTML = `
+                    <div class="flex items-center justify-center p-4">
+                        <div class="loading loading-spinner loading-sm"></div>
+                        <span class="ml-2">Searching symbols...</span>
+                    </div>
+                `;
+                autocompleteContainer.classList.remove('hidden');
+            }
+            
+            // Hide loading indicator
+            function hideLoading() {
+                // Loading is replaced by results, so we don't need to do anything here
+            }
+            
+            // Function to search stock symbols using Alpha Vantage API
+            async function searchStockSymbols(query) {
+                // Use Alpha Vantage's SYMBOL_SEARCH endpoint
+                const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=DEMO`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data && data.bestMatches) {
+                    return data.bestMatches.map(match => ({
+                        symbol: match['1. symbol'],
+                        name: match['2. name'],
+                        type: match['3. type'],
+                        region: match['4. region'],
+                        currency: match['8. currency']
+                    }));
+                }
+                
+                return [];
+            }
+            
+            // Render search results in the dropdown
+            function renderSearchResults(results) {
+                if (results.length === 0) {
+                    autocompleteContainer.innerHTML = `
+                        <div class="p-3 text-sm opacity-70">
+                            No matching stocks found. Try a different search term.
+                        </div>
+                    `;
+                    autocompleteContainer.classList.remove('hidden');
+                    return;
+                }
+                
+                // Group results by region
+                const resultsByRegion = {};
+                results.forEach(result => {
+                    if (!resultsByRegion[result.region]) {
+                        resultsByRegion[result.region] = [];
+                    }
+                    resultsByRegion[result.region].push(result);
+                });
+                
+                // Build the HTML for the results
+                let html = '';
+                
+                // First show US results as they're typically most relevant
+                if (resultsByRegion['United States']) {
+                    html += `<div class="text-xs font-semibold text-opacity-70 px-3 py-1 bg-base-200">United States</div>`;
+                    resultsByRegion['United States'].forEach(result => {
+                        html += createResultItemHTML(result);
+                    });
+                    delete resultsByRegion['United States']; // Remove so we don't show it twice
+                }
+                
+                // Show other regions
+                Object.keys(resultsByRegion).forEach(region => {
+                    html += `<div class="text-xs font-semibold text-opacity-70 px-3 py-1 bg-base-200">${region}</div>`;
+                    resultsByRegion[region].forEach(result => {
+                        html += createResultItemHTML(result);
+                    });
+                });
+                
+                autocompleteContainer.innerHTML = html;
+                autocompleteContainer.classList.remove('hidden');
+                
+                // Add click event handlers for each result
+                autocompleteContainer.querySelectorAll('.stock-result-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const symbol = this.dataset.symbol;
+                        const name = this.dataset.name;
+                        
+                        // Fill the stock symbol input
+                        symbolInput.value = symbol;
+                        
+                        // Set the stock name if a field exists for it
+                        if (document.getElementById('stock-name')) {
+                            document.getElementById('stock-name').value = name;
+                        }
+                        
+                        // Fetch current price and fill it if the field exists
+                        fetchCurrentStockPrice(symbol).then(result => {
+                            if (result.success && document.getElementById('stock-price')) {
+                                document.getElementById('stock-price').value = result.price;
+                            }
+                        });
+                        
+                        // Hide the autocomplete dropdown
+                        autocompleteContainer.classList.add('hidden');
+                    });
+                });
+            }
+            
+            // Create HTML for a single search result
+            function createResultItemHTML(result) {
+                return `
+                    <div class="px-3 py-2 hover:bg-base-200 cursor-pointer stock-result-item" 
+                         data-symbol="${result.symbol}" 
+                         data-name="${result.name}">
+                        <div class="font-bold">${result.symbol}</div>
+                        <div class="text-xs">${result.name}</div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs opacity-70">${result.type}</span>
+                            <span class="text-xs opacity-70">${result.currency}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Debounce helper function to prevent too many API calls
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
         }
     </script>
 </body>
