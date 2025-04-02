@@ -73,6 +73,21 @@
             background-color: hsl(var(--b1));
         }
         
+        /* Improve stat display on mobile */
+        @media (max-width: 768px) {
+            .stat-value {
+                font-size: 1.25rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                line-height: 1.3;
+            }
+            
+            .stat {
+                min-height: 80px; /* Ensure consistent stat box height */
+            }
+        }
+        
+        /* Ensure the hamburger icon stands out */
         .navbar-start label.btn {
             position: relative;
             z-index: 100;
@@ -91,6 +106,192 @@
     </style>
     <!-- Add this in the head section, just before your existing scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Add this to your head section, just after the other style tags -->
+    <style>
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            /* Make tables scrollable horizontally on mobile */
+            .overflow-x-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Adjust font sizes for mobile */
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            /* Make search input larger on mobile for touch targets */
+            #stock-search {
+                height: 2.5rem;
+            }
+            
+            /* Improve spacing for mobile forms */
+            .form-control {
+                margin-bottom: 0.75rem;
+            }
+            
+            /* Hide less important columns on small screens */
+            @media (max-width: 640px) {
+                .table th:nth-child(4),
+                .table th:nth-child(5),
+                .table td:nth-child(4),
+                .table td:nth-child(5) {
+                    display: none;
+                }
+            }
+            
+            /* Make the stock search more usable on small screens */
+            .input-group {
+                width: 100%;
+            }
+            
+            /* Remove extra spacing */
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            /* Improve modal usability on mobile */
+            .modal-box {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+                width: calc(100% - 1rem);
+            }
+        }
+        
+        /* Improve table responsiveness across all screen sizes */
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        /* Toast notifications position for mobile */
+        .alert.fixed {
+            max-width: 90%;
+            left: 5%;
+            right: 5%;
+        }
+
+        /* Add these mobile enhancements to your existing styles */
+        @media (max-width: 640px) {
+            /* Better table display on mobile */
+            table.mobile-optimized {
+                border: 0;
+            }
+            
+            table.mobile-optimized thead {
+                border: none;
+                clip: rect(0 0 0 0);
+                height: 1px;
+                margin: -1px;
+                overflow: hidden;
+                padding: 0;
+                position: absolute;
+                width: 1px;
+            }
+            
+            table.mobile-optimized tr {
+                border-bottom: 3px solid hsl(var(--b3));
+                display: block;
+                margin-bottom: .625em;
+            }
+            
+            table.mobile-optimized td {
+                border-bottom: 1px solid hsl(var(--b3));
+                display: block;
+                font-size: .8em;
+                text-align: right;
+                padding: 0.5rem;
+            }
+            
+            table.mobile-optimized td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                text-transform: uppercase;
+                opacity: 0.7;
+            }
+            
+            table.mobile-optimized td:last-child {
+                border-bottom: 0;
+            }
+            
+            /* Better button spacing on mobile */
+            .btn-xs {
+                padding: 0.5rem;
+                margin: 0.1rem;
+            }
+            
+            /* Improve form layouts on mobile */
+            .form-control {
+                margin-bottom: 1rem;
+            }
+            
+            /* Make modals better on mobile */
+            .modal-box {
+                margin: 1rem;
+                padding: 1rem;
+                width: calc(100% - 2rem);
+                max-width: none;
+            }
+            
+            /* Fix scroll issues with modals */
+            .modal-box.has-keyboard {
+                padding-bottom: 40vh;
+            }
+            
+            /* Improve chart layout on mobile */
+            canvas {
+                max-height: 250px !important;
+            }
+            
+            /* Performance cards layout */
+            .card-body {
+                padding: 1rem;
+            }
+            
+            /* Stack action buttons */
+            td .flex.gap-2 {
+                flex-direction: column;
+            }
+        }
+        
+        /* Improve tap targets throughout the app */
+        @media (max-width: 768px) {
+            .btn, button, .tab, .navbar a, .drawer-side a {
+                min-height: 2.5rem;
+            }
+            
+            /* Make sure the bottom stats are visible without scrolling too much */
+            .stat {
+                padding: 0.75rem;
+            }
+            
+            /* More visible active tabs */
+            [role="tab"].tab-active {
+                border-bottom-width: 3px;
+            }
+            
+            /* Touch-friendly dropdowns */
+            #symbol-autocomplete {
+                max-height: 50vh;
+            }
+            
+            #symbol-autocomplete .stock-result-item {
+                padding: 0.75rem 1rem;
+            }
+            
+            /* Better toast positioning for mobile */
+            .alert.fixed {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+                bottom: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="drawer">
@@ -120,7 +321,7 @@
 
         <div class="container mx-auto px-4 py-2">
             <!-- Your existing content starts here -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
                     <div class="stat bg-base-100 shadow rounded-box">
                         <div class="stat-title">Portfolio Value</div>
                         <div class="stat-value text-primary" id="total-value">$0.00</div>
@@ -139,33 +340,36 @@
                     </div>
                 </div>
 
-                <!-- Tabs -->
-                <div role="tablist" class="tabs tabs-lifted mb-6">
-                    <a role="tab" class="tab tab-active" data-tab="stocks">Stocks</a>
-                    <a role="tab" class="tab" data-tab="bonds">Bonds</a>
-                    <a role="tab" class="tab" data-tab="cash">Cash & Others</a>
-                    <a role="tab" class="tab" data-tab="overview">Portfolio Overview</a>
+                <!-- Make tabs scroll horizontally on mobile -->
+                <div class="overflow-x-auto pb-2 mb-2">
+                    <div role="tablist" class="tabs tabs-lifted">
+                        <a role="tab" class="tab tab-active" data-tab="stocks">Stocks</a>
+                        <a role="tab" class="tab" data-tab="bonds">Bonds</a>
+                        <a role="tab" class="tab" data-tab="cash">Cash & Others</a>
+                        <a role="tab" class="tab" data-tab="overview">Portfolio Overview</a>
+                    </div>
                 </div>
 
                 <!-- Stock Tab Content -->
                 <div class="tab-content active" id="stocks-tab">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold">Stock Holdings</h2>
-                            <div class="form-control">
+                    <!-- Replace the stock list header section with this responsive version -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h2 class="text-xl sm:text-2xl font-bold">Stock Holdings</h2>
+                        <div class="w-full sm:w-auto flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <div class="form-control w-full sm:w-auto">
                                 <div class="input-group">
-                                    <input type="text" id="stock-search" placeholder="Search stocks..." class="input input-bordered input-sm w-60" />
-                                    <button class="btn btn-sm btn-square" id="clear-search-btn">
+                                    <input type="text" id="stock-search" placeholder="Search stocks..." class="input input-bordered w-full" />
+                                    <button class="btn btn-square" id="clear-search-btn">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
                             </div>
+                            <button class="btn btn-primary w-full sm:w-auto" id="add-stock-btn">Add Stock</button>
                         </div>
-                        <button class="btn btn-primary" id="add-stock-btn">Add Stock</button>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto table-responsive">
                         <table class="table table-zebra w-full">
                             <thead>
                                 <tr>
@@ -193,7 +397,7 @@
                         <h2 class="text-2xl font-bold">Bond Holdings</h2>
                         <button class="btn btn-primary" id="add-bond-btn">Add Bond</button>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto table-responsive">
                         <table class="table table-zebra w-full">
                             <thead>
                                 <tr>
@@ -221,7 +425,7 @@
                         <h2 class="text-2xl font-bold">Cash & Other Assets</h2>
                         <button class="btn btn-primary" id="add-cash-btn">Add Asset</button>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto table-responsive">
                         <table class="table table-zebra w-full">
                             <thead>
                                 <tr>
@@ -556,24 +760,30 @@
                     <h2 class="text-xl font-bold mt-2">Siraphob Phairoh</h2>
                     <a href="https://github.com/SoSira01" target="_blank" class="text-primary flex items-center mt-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1" viewBox="0 0 16 16">
-                    <li>Track stocks, bonds, and cash assets in one place</li>
-                    <li>View portfolio allocation and performance</li>
-                    <li>Support for multiple currencies with automatic conversion</li>
-                    <li>Real-time price updates for stocks</li>
-                    <li>Responsive design for desktop and mobile</li>
-                </ul>
-                <p class="mt-4 text-sm opacity-75">Version 1.0 - Created 2025</p>
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    SoSira01
+                </a>
             </div>
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn">Close</button>
-                </form>
-            </div>
+            <div class="divider"></div>
+            <p class="mb-2">This is my first version of an Asset Portfolio Tracker that helps you manage and monitor your investments across different asset classes.</p>
+            <p class="mb-2">Features:</p>
+            <ul class="list-disc list-inside ml-4">
+                <li>Track stocks, bonds, and cash assets in one place</li>
+                <li>View portfolio allocation and performance</li>
+                <li>Support for multiple currencies with automatic conversion</li>
+                <li>Real-time price updates for stocks</li>
+                <li>Responsive design for desktop and mobile</li>
+            </ul>
+            <p class="mt-4 text-sm opacity-75">Version 1.0 - Created 2025</p>
+                <button class="btn">Close</button>
+            </form>
         </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -729,16 +939,62 @@
 
             // Add this inside the DOMContentLoaded event listener where you initialize your app
             setupStockSymbolAutocomplete();
+
+            // Set up mobile-friendly behaviors
+            setupMobileModalBehavior();
+            
+            // Adjust toast position on mobile
+            const originalShowToast = showToast;
+            showToast = function(message, type = 'info') {
+                const toast = document.createElement('div');
+                const isMobile = window.innerWidth < 768;
+                toast.className = `alert alert-${type} fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-4 right-4'} w-auto max-w-${isMobile ? 'full' : 'sm'} z-50`;
+                toast.innerHTML = `<span>${message}</span>`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 500);
+                }, 3000);
+            };
+
+            // Add this inside your existing DOMContentLoaded event listener
+            setupMobileModalBehavior();
+            adjustTableResponsiveness();
+
+            // Mobile stat values fix
+            function adjustStatResponsiveness() {
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach(statValue => {
+                    if (window.innerWidth < 768) {
+                        const content = statValue.textContent;
+                        if (content.length > 12) {
+                            statValue.style.fontSize = '1.25rem';
+                            statValue.style.wordBreak = 'break-word';
+                        } else {
+                            statValue.style.fontSize = '1.5rem';
+                        }
+                    } else {
+                        statValue.style.fontSize = '';
+                        statValue.style.wordBreak = '';
+                    }
+                });
+            }
+
+            // Call when page loads and add to resize event
+            adjustStatResponsiveness();
+            window.addEventListener('resize', debounce(() => {
+                adjustTableResponsiveness();
+                adjustStatResponsiveness();
+            }, 250));
         });
         
         // Tab functionality
         function switchTab(tabId) {
             tabs.forEach(tab => {
-                if (tab.dataset.tab === tabId) {
-                    tab.classList.add('tab-active');
-                } else {
-                    tab.classList.remove('tab-active');
-                }
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
             });
             
             document.querySelectorAll('.drawer-side a').forEach(link => {
@@ -759,7 +1015,7 @@
                 }
             });
         }
-        
+
         // Form handlers
         function handleAddStock(e) {
             e.preventDefault();
@@ -1391,18 +1647,20 @@
                     layout: {
                         padding: {
                             top: 10,
-                            bottom: 20
+                            bottom: 20,
+                            left: window.innerWidth < 768 ? 5 : 10,
+                            right: window.innerWidth < 768 ? 5 : 10
                         }
                     },
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: window.innerWidth < 768 ? 'bottom' : 'right',
                             labels: {
                                 font: {
-                                    size: 14
+                                    size: window.innerWidth < 768 ? 12 : 14
                                 },
-                                padding: 20,
-                                boxWidth: 15
+                                padding: window.innerWidth < 768 ? 10 : 20,
+                                boxWidth: window.innerWidth < 768 ? 12 : 15
                             }
                         },
                         tooltip: {
@@ -2147,6 +2405,110 @@
                     timeout = setTimeout(later, wait);
                 };
             }
+        }
+
+        // Enhance the mobile modal behavior
+        function setupMobileModalBehavior() {
+            // Get all modals
+            const modals = document.querySelectorAll('.modal');
+            
+            modals.forEach(modal => {
+                // Add event listener for showing modal
+                modal.addEventListener('showModal', () => {
+                    document.body.classList.add('overflow-hidden');
+                    
+                    // Adjust modal position for better mobile viewing
+                    if (window.innerWidth < 768) {
+                        const modalBox = modal.querySelector('.modal-box');
+                        if (modalBox) {
+                            modalBox.style.maxHeight = '85vh';
+                            modalBox.style.marginTop = '2rem';
+                            modalBox.style.marginBottom = '2rem';
+                        }
+                    }
+                });
+                
+                // Add event listener for hiding modal
+                modal.addEventListener('close', () => {
+                    document.body.classList.remove('overflow-hidden');
+                });
+            });
+            
+            // Make sure the mobile keyboard doesn't cause layout issues
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    if (window.innerWidth < 768) {
+                        // Scroll to the input after a short delay to account for keyboard appearing
+                        setTimeout(() => {
+                            input.scrollIntoView({behavior: 'smooth', block: 'center'});
+                            
+                            // Add extra bottom padding to containers when keyboard is visible
+                            const modalBox = input.closest('.modal-box');
+                            if (modalBox) {
+                                modalBox.style.paddingBottom = '40vh';
+                            }
+                        }, 300);
+                    }
+                });
+                
+                // Remove extra padding when input loses focus
+                input.addEventListener('blur', () => {
+                    if (window.innerWidth < 768) {
+                        const modalBox = input.closest('.modal-box');
+                        if (modalBox) {
+                            modalBox.style.paddingBottom = '';
+                        }
+                    }
+                });
+            });
+            
+            // Adjust stock table for better mobile viewing
+            adjustTableResponsiveness();
+            
+            // Add orientation change handling
+            window.addEventListener('orientationchange', () => {
+                setTimeout(adjustTableResponsiveness, 300);
+            });
+            
+            // Make sure modals are properly centered on resize
+            window.addEventListener('resize', () => {
+                if (document.querySelector('.modal[open]')) {
+                    const openModals = document.querySelectorAll('.modal[open]');
+                    openModals.forEach(modal => {
+                        const modalBox = modal.querySelector('.modal-box');
+                        if (modalBox && window.innerWidth < 768) {
+                            modalBox.style.maxHeight = '85vh';
+                        } else if (modalBox) {
+                            modalBox.style.maxHeight = '';
+                        }
+                    });
+                }
+            });
+        }
+
+        // Add this function to handle table responsiveness
+        function adjustTableResponsiveness() {
+            const tables = document.querySelectorAll('.table-responsive table');
+            
+            tables.forEach(table => {
+                // For very small screens, add data-labels to cells based on headers
+                if (window.innerWidth < 640) {
+                    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+                    
+                    table.querySelectorAll('tbody tr').forEach(row => {
+                        Array.from(row.querySelectorAll('td')).forEach((cell, index) => {
+                            if (headers[index]) {
+                                cell.setAttribute('data-label', headers[index]);
+                            }
+                        });
+                    });
+                    
+                    table.classList.add('mobile-optimized');
+                } else {
+                    table.classList.remove('mobile-optimized');
+                }
+            });
         }
     </script>
 </body>
