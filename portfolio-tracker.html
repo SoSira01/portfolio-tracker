@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Portfolio Tracker</title>
+    <!-- DaisyUI and Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.7/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {}
+            },
+            daisyui: {
+                themes: ["light", "dark", "corporate", "business"]
+            }
+        }
+    </script>
+    <style>
+        .positive {
+            color: hsl(var(--su));
+        }
+        
+        .negative {
+            color: hsl(var(--er));
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Add to your existing styles */
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .alert {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        /* Search highlighting */
+        .highlight {
+            background-color: rgba(var(--p), 0.2);
+        }
+        
+        /* Fix for toast notifications */
+        .alert {
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body>
+    <div class="drawer">
+    <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+    <div class="drawer-content">
+        <!-- Navbar -->
+        <div class="navbar bg-primary text-primary-content shadow-lg mb-4">
+            <div class="navbar-start">
+                <label for="my-drawer" class="btn btn-ghost drawer-button lg:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </label>
+                <h1 class="text-xl font-bold">Asset Portfolio Tracker</h1>
+            </div>
+            <div class="navbar-end">
+                <button class="btn btn-ghost tooltip" data-tip="Refresh Stock Prices" id="refresh-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+                <button class="btn btn-ghost" onclick="document.getElementById('theme-modal').showModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-4 py-2">
+            <!-- Your existing content starts here -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="stat bg-base-100 shadow rounded-box">
+                        <div class="stat-title">Portfolio Value</div>
+                        <div class="stat-value text-primary" id="total-value">$0.00</div>
+                    </div>
+                    <div class="stat bg-base-100 shadow rounded-box">
+                        <div class="stat-title">Total Gain/Loss</div>
+                        <div class="stat-value" id="total-gain-loss">$0.00 (0%)</div>
+                    </div>
+                    <div class="stat bg-base-100 shadow rounded-box">
+                        <div class="stat-title">Today's Change</div>
+                        <div class="stat-value" id="today-change">$0.00 (0%)</div>
+                    </div>
+                    <div class="stat bg-base-100 shadow rounded-box">
+                        <div class="stat-title">Total Assets</div>
+                        <div class="stat-value text-secondary" id="total-assets">0</div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div role="tablist" class="tabs tabs-lifted mb-6">
+                    <a role="tab" class="tab tab-active" data-tab="stocks">Stocks</a>
+                    <a role="tab" class="tab" data-tab="bonds">Bonds</a>
+                    <a role="tab" class="tab" data-tab="cash">Cash & Others</a>
+                    <a role="tab" class="tab" data-tab="overview">Portfolio Overview</a>
+                </div>
+
+                <!-- Stock Tab Content -->
+                <div class="tab-content active" id="stocks-tab">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-2xl font-bold">Stock Holdings</h2>
+                            <div class="form-control">
+                                <div class="input-group">
+                                    <input type="text" id="stock-search" placeholder="Search stocks..." class="input input-bordered input-sm w-60" />
+                                    <button class="btn btn-sm btn-square" id="clear-search-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="add-stock-btn">Add Stock</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Name</th>
+                                    <th>Shares</th>
+                                    <th>Avg. Price</th>
+                                    <th>Current Price</th>
+                                    <th>Market Value</th>
+                                    <th>Gain/Loss</th>
+                                    <th>% Change</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-list">
+                                <!-- Stock data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bond Tab Content -->
+                <div class="tab-content" id="bonds-tab">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Bond Holdings</h2>
+                        <button class="btn btn-primary" id="add-bond-btn">Add Bond</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Face Value</th>
+                                    <th>Purchase Price</th>
+                                    <th>Yield</th>
+                                    <th>Maturity Date</th>
+                                    <th>Current Value</th>
+                                    <th>Gain/Loss</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bond-list">
+                                <!-- Bond data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cash Tab Content -->
+                <div class="tab-content" id="cash-tab">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Cash & Other Assets</h2>
+                        <button class="btn btn-primary" id="add-cash-btn">Add Asset</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Value</th>
+                                    <th>Currency</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cash-list">
+                                <!-- Cash data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Overview Tab Content -->
+                <div class="tab-content" id="overview-tab">
+                    <div class="card bg-base-100 shadow-xl mb-6">
+                        <div class="card-body">
+                            <h3 class="card-title">Asset Allocation</h3>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="allocation-chart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h3 class="card-title">Top Performers</h3>
+                                <ul id="top-performers" class="mt-4">
+                                    <!-- Top performers will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h3 class="card-title">Worst Performers</h3>
+                                <ul id="worst-performers" class="mt-4">
+                                    <!-- Worst performers will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body">
+                                <h3 class="card-title">Asset Summary</h3>
+                                <div class="overflow-x-auto mt-4">
+                                    <table class="table table-xs">
+                                        <thead>
+                                            <tr>
+                                                <th>Asset Type</th>
+                                                <th>Count</th>
+                                                <th>Total Value</th>
+                                                <th>Allocation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="asset-summary">
+                                            <!-- Asset summary will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add this in the grid below your Asset Summary card in the overview tab -->
+                        <div class="card bg-base-100 shadow-xl">
+                            <div class="card-body" id="exchange-rates-container">
+                                <!-- This will be filled by updateExchangeRatesTable() -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar drawer -->
+        <div class="drawer-side">
+            <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+            <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                <li class="menu-title">Navigation</li>
+                <li><a data-tab="stocks" class="active">Stocks</a></li>
+                <li><a data-tab="bonds">Bonds</a></li>
+                <li><a data-tab="cash">Cash & Others</a></li>
+                <li><a data-tab="overview">Portfolio Overview</a></li>
+                <li class="menu-title mt-4">Settings</li>
+                <li><a>Theme Settings</a></li>
+                <li><a>Export Data</a></li>
+                <li><a>About</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <dialog id="add-stock-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Add Stock</h3>
+            <form id="add-stock-form" class="py-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Symbol</span>
+                    </label>
+                    <input type="text" id="stock-symbol" placeholder="e.g. MSFT" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Number of Shares</span>
+                    </label>
+                    <input type="number" id="stock-shares" placeholder="e.g. 10" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Purchase Price Per Share</span>
+                    </label>
+                    <input type="number" id="stock-price" placeholder="e.g. 325.50" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Purchase Date</span>
+                    </label>
+                    <input type="date" id="stock-date" class="input input-bordered w-full" required />
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Stock</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Add Bond Modal -->
+    <dialog id="add-bond-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Add Bond</h3>
+            <form id="add-bond-form" class="py-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Bond Name</span>
+                    </label>
+                    <input type="text" id="bond-name" placeholder="e.g. US Treasury" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Type</span>
+                    </label>
+                    <select id="bond-type" class="select select-bordered w-full" required>
+                        <option value="government">Government</option>
+                        <option value="municipal">Municipal</option>
+                        <option value="corporate">Corporate</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Face Value</span>
+                    </label>
+                    <input type="number" id="bond-face-value" placeholder="e.g. 1000" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Purchase Price</span>
+                    </label>
+                    <input type="number" id="bond-purchase-price" placeholder="e.g. 980" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Yield (%)</span>
+                    </label>
+                    <input type="number" id="bond-yield" placeholder="e.g. 5.25" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Maturity Date</span>
+                    </label>
+                    <input type="date" id="bond-maturity" class="input input-bordered w-full" required />
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Bond</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Add Cash/Other Modal -->
+    <dialog id="add-cash-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Add Cash or Other Asset</h3>
+            <form id="add-cash-form" class="py-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Asset Name</span>
+                    </label>
+                    <input type="text" id="cash-name" placeholder="e.g. Savings Account" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Type</span>
+                    </label>
+                    <select id="cash-type" class="select select-bordered w-full" required>
+                        <option value="cash">Cash</option>
+                        <option value="savings">Savings</option>
+                        <option value="cd">Certificate of Deposit</option>
+                        <option value="crypto">Cryptocurrency</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Value</span>
+                    </label>
+                    <input type="number" id="cash-value" placeholder="e.g. 5000" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Currency</span>
+                    </label>
+                    <input type="text" id="cash-currency" placeholder="e.g. USD" value="USD" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Notes</span>
+                    </label>
+                    <textarea id="cash-notes" placeholder="Optional notes" class="textarea textarea-bordered w-full"></textarea>
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Asset</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Theme change modal -->
+    <dialog id="theme-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Choose Theme</h3>
+            <div class="grid grid-cols-2 gap-4 py-4">
+                <button class="btn" onclick="setTheme('light')">Light</button>
+                <button class="btn" onclick="setTheme('dark')">Dark</button>
+                <button class="btn" onclick="setTheme('corporate')">Corporate</button>
+                <button class="btn" onclick="setTheme('business')">Business</button>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Edit Stock Modal -->
+    <dialog id="edit-stock-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Edit Stock</h3>
+            <form id="edit-stock-form" class="py-4">
+                <input type="hidden" id="edit-stock-id" />
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Symbol</span>
+                    </label>
+                    <input type="text" id="edit-stock-symbol" placeholder="e.g. MSFT" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Name</span>
+                    </label>
+                    <input type="text" id="edit-stock-name" placeholder="e.g. Microsoft Corporation" class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Number of Shares</span>
+                    </label>
+                    <input type="number" id="edit-stock-shares" placeholder="e.g. 10" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Purchase Price Per Share</span>
+                    </label>
+                    <input type="number" id="edit-stock-price" placeholder="e.g. 325.50" step="0.01" class="input input-bordered w-full" required />
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Purchase Date</span>
+                    </label>
+                    <input type="date" id="edit-stock-date" class="input input-bordered w-full" required />
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        // Global variables
+        let stockData = JSON.parse(localStorage.getItem('stockData')) || [];
+        let bondData = JSON.parse(localStorage.getItem('bondData')) || [];
+        let cashData = JSON.parse(localStorage.getItem('cashData')) || [];
+        
+        // DOM Elements
+        const stockList = document.getElementById('stock-list');
+        const bondList = document.getElementById('bond-list');
+        const cashList = document.getElementById('cash-list');
+        const totalValue = document.getElementById('total-value');
+        const totalGainLoss = document.getElementById('total-gain-loss');
+        const todayChange = document.getElementById('today-change');
+        const totalAssets = document.getElementById('total-assets');
+        
+        // Modal Elements
+        const addStockBtn = document.getElementById('add-stock-btn');
+        const addBondBtn = document.getElementById('add-bond-btn');
+        const addCashBtn = document.getElementById('add-cash-btn');
+        const addStockModal = document.getElementById('add-stock-modal');
+        const addBondModal = document.getElementById('add-bond-modal');
+        const addCashModal = document.getElementById('add-cash-modal');
+        const addStockForm = document.getElementById('add-stock-form');
+        const addBondForm = document.getElementById('add-bond-form');
+        const addCashForm = document.getElementById('add-cash-form');
+        
+        // Tab Elements
+        const tabs = document.querySelectorAll('[role="tab"]');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Theme handling
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved theme if any
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+            
+            // Initialize tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            
+            document.querySelectorAll('.drawer-side a').forEach(link => {
+                if (link.dataset.tab) {
+                    link.addEventListener('click', () => {
+                        switchTab(link.dataset.tab);
+                        document.getElementById('my-drawer').checked = false;
+                    });
+                }
+            });
+            
+            // Setup modal events
+            addStockBtn.addEventListener('click', () => addStockModal.showModal());
+            addBondBtn.addEventListener('click', () => addBondModal.showModal());
+            addCashBtn.addEventListener('click', () => addCashModal.showModal());
+            
+            document.querySelectorAll('.close-modal').forEach(button => {
+                button.addEventListener('click', () => {
+                    addStockModal.close();
+                    addBondModal.close();
+                    addCashModal.close();
+                });
+            });
+            
+            // Form submissions
+            addStockForm.addEventListener('submit', handleAddStock);
+            addBondForm.addEventListener('submit', handleAddBond);
+            addCashForm.addEventListener('submit', handleAddCash);
+            
+            // Load data
+            loadAllData();
+            
+            // Initial API call for stock prices
+            fetchStockPrices();
+            
+            // Setup refresh button
+            document.getElementById('refresh-btn')?.addEventListener('click', fetchStockPrices);
+            
+            // Create charts
+            createAllocationChart();
+
+            // Set up search functionality
+            setupStockSearch();
+
+            // Add this to your existing DOMContentLoaded event listener:
+            const editStockForm = document.getElementById('edit-stock-form');
+            editStockForm.addEventListener('submit', handleEditStock);
+
+            // Set up stock search functionality
+            setupStockSearch();
+
+            // Make sure the edit modal close button works
+            document.querySelectorAll('.close-modal').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.getElementById('edit-stock-modal').close();
+                    document.getElementById('add-stock-modal').close();
+                    document.getElementById('add-bond-modal').close();
+                    document.getElementById('add-cash-modal').close();
+                });
+            });
+
+            // Fetch exchange rates on load
+            fetchExchangeRates();
+
+            // Add this after other initialization code
+            
+            // Load saved exchange rates if available
+            const savedRates = localStorage.getItem('exchangeRates');
+            if (savedRates) {
+                const ratesData = JSON.parse(savedRates);
+                Object.assign(exchangeRates, ratesData.rates);
+                
+                // Check if we need to refresh rates (older than 1 day)
+                const oneDayMs = 24 * 60 * 60 * 1000;
+                if (Date.now() - ratesData.timestamp > oneDayMs) {
+                    fetchExchangeRates();
+                }
+            } else {
+                // No saved rates, fetch them
+                fetchExchangeRates();
+            }
+            
+            // Update the exchange rates table
+            updateExchangeRatesTable();
+        });
+        
+        // Tab functionality
+        function switchTab(tabId) {
+            tabs.forEach(tab => {
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('tab-active');
+                } else {
+                    tab.classList.remove('tab-active');
+                }
+            });
+            
+            document.querySelectorAll('.drawer-side a').forEach(link => {
+                if (link.dataset.tab) {
+                    if (link.dataset.tab === tabId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                }
+            });
+            
+            tabContents.forEach(content => {
+                if (content.id === `${tabId}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+        
+        // Form handlers
+        function handleAddStock(e) {
+            e.preventDefault();
+            
+            const symbol = document.getElementById('stock-symbol').value.toUpperCase();
+            const shares = parseFloat(document.getElementById('stock-shares').value);
+            const price = parseFloat(document.getElementById('stock-price').value);
+            const date = document.getElementById('stock-date').value;
+            
+            const newStock = {
+                id: Date.now().toString(),
+                symbol,
+                shares,
+                purchasePrice: price,
+                purchaseDate: date,
+                currentPrice: price,
+                name: symbol, // Will be updated from API
+                change: 0,
+                changePercent: 0
+            };
+            
+            stockData.push(newStock);
+            saveStockData();
+            
+            fetchStockDetails(symbol)
+                .then(data => {
+                    if (data) {
+                        const stockIndex = stockData.findIndex(s => s.id === newStock.id);
+                        if (stockIndex !== -1) {
+                            stockData[stockIndex].name = data.name || symbol;
+                            stockData[stockIndex].currentPrice = data.price || price;
+                            saveStockData();
+                            renderStockList();
+                            updateSummary();
+                        }
+                    }
+                });
+            
+            renderStockList();
+            updateSummary();
+            addStockModal.close();
+            addStockForm.reset();
+        }
+        
+        function handleAddBond(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('bond-name').value;
+            const type = document.getElementById('bond-type').value;
+            const faceValue = parseFloat(document.getElementById('bond-face-value').value);
+            const purchasePrice = parseFloat(document.getElementById('bond-purchase-price').value);
+            const yieldRate = parseFloat(document.getElementById('bond-yield').value);
+            const maturityDate = document.getElementById('bond-maturity').value;
+            
+            const newBond = {
+                id: Date.now().toString(),
+                name,
+                type,
+                faceValue,
+                purchasePrice,
+                yieldRate,
+                maturityDate,
+                currentValue: purchasePrice
+            };
+            
+            bondData.push(newBond);
+            saveBondData();
+            renderBondList();
+            updateSummary();
+            addBondModal.close();
+            addBondForm.reset();
+        }
+        
+        function handleAddCash(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('cash-name').value;
+            const type = document.getElementById('cash-type').value;
+            const value = parseFloat(document.getElementById('cash-value').value);
+            const currency = document.getElementById('cash-currency').value;
+            const notes = document.getElementById('cash-notes').value;
+            
+            const newCash = {
+                id: Date.now().toString(),
+                name,
+                type,
+                value,
+                currency,
+                notes
+            };
+            
+            cashData.push(newCash);
+            saveCashData();
+            renderCashList();
+            updateSummary();
+            addCashModal.close();
+            addCashForm.reset();
+        }
+        
+        // Data handling
+        function saveStockData() {
+            localStorage.setItem('stockData', JSON.stringify(stockData));
+        }
+        
+        function saveBondData() {
+            localStorage.setItem('bondData', JSON.stringify(bondData));
+        }
+        
+        function saveCashData() {
+            localStorage.setItem('cashData', JSON.stringify(cashData));
+        }
+        
+        function loadAllData() {
+            renderStockList();
+            renderBondList();
+            renderCashList();
+            updateSummary();
+        }
+        
+        // Rendering functions
+        // Update the renderStockList function to include edit button and search filtering
+        function renderStockList() {
+            // Get search term
+            const searchTerm = (document.getElementById('stock-search')?.value || '').toLowerCase();
+            
+            // Filter stocks by search term if it exists
+            const filteredStocks = searchTerm 
+                ? stockData.filter(stock => 
+                    stock.symbol.toLowerCase().includes(searchTerm) || 
+                    (stock.name && stock.name.toLowerCase().includes(searchTerm)))
+                : stockData;
+            
+            stockList.innerHTML = '';
+            
+            if (filteredStocks.length === 0) {
+                if (searchTerm && stockData.length > 0) {
+                    stockList.innerHTML = '<tr><td colspan="9" class="text-center">No stocks match your search. Try a different term.</td></tr>';
+                } else {
+                    stockList.innerHTML = '<tr><td colspan="9" class="text-center">No stocks added yet. Click "Add Stock" to get started.</td></tr>';
+                }
+                return;
+            }
+            
+            filteredStocks.forEach(stock => {
+                const marketValue = stock.shares * stock.currentPrice;
+                const costBasis = stock.shares * stock.purchasePrice;
+                const gainLoss = marketValue - costBasis;
+                const gainLossPercent = (gainLoss / costBasis) * 100;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stock.symbol}</td>
+                    <td>${stock.name || stock.symbol}</td>
+                    <td>${stock.shares.toFixed(2)}</td>
+                    <td>$${stock.purchasePrice.toFixed(2)}</td>
+                    <td>$${stock.currentPrice.toFixed(2)}</td>
+                    <td>$${marketValue.toFixed(2)}</td>
+                    <td class="${gainLoss >= 0 ? 'positive' : 'negative'}">$${gainLoss.toFixed(2)}</td>
+                    <td class="${gainLossPercent >= 0 ? 'positive' : 'negative'}">${gainLossPercent.toFixed(2)}%</td>
+                    <td>
+                        <div class="flex gap-2 justify-end">
+                            <button class="btn btn-ghost btn-xs" onclick="editStock('${stock.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-error btn-xs" onclick="deleteStock('${stock.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                stockList.appendChild(row);
+            });
+        }
+        
+        function renderBondList() {
+            bondList.innerHTML = '';
+            
+            if (bondData.length === 0) {
+                bondList.innerHTML = '<tr><td colspan="9" class="text-center">No bonds added yet. Click "Add Bond" to get started.</td></tr>';
+                return;
+            }
+            
+            bondData.forEach(bond => {
+                // Calculate current bond value (simplified)
+                // In a real app, you would calculate this based on yield curves and time to maturity
+                const maturityDate = new Date(bond.maturityDate);
+                const today = new Date();
+                const timeToMaturity = (maturityDate - today) / (1000 * 60 * 60 * 24 * 365); // in years
+                
+                // Simple approximation - in reality bond pricing is more complex
+                let currentValue;
+                if (timeToMaturity <= 0) {
+                    currentValue = bond.faceValue;
+                } else {
+                    // Simplified calculation
+                    const marketYield = bond.yieldRate * 0.95; // Assume current yields are 5% lower than when purchased
+                    currentValue = bond.faceValue / Math.pow(1 + marketYield/100, timeToMaturity);
+                }
+                
+                const gainLoss = currentValue - bond.purchasePrice;
+                const gainLossPercent = (gainLoss / bond.purchasePrice) * 100;
+                
+                bond.currentValue = currentValue; // Update the bond's current value
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bond.name}</td>
+                    <td><div class="badge badge-outline">${capitalizeFirstLetter(bond.type)}</div></td>
+                    <td>$${bond.faceValue.toFixed(2)}</td>
+                    <td>$${bond.purchasePrice.toFixed(2)}</td>
+                    <td>${bond.yieldRate.toFixed(2)}%</td>
+                    <td>${formatDate(bond.maturityDate)}</td>
+                    <td>$${currentValue.toFixed(2)}</td>
+                    <td class="${gainLoss >= 0 ? 'positive' : 'negative'}">$${gainLoss.toFixed(2)} (${gainLossPercent.toFixed(2)}%)</td>
+                    <td>
+                        <button class="btn btn-error btn-sm" onclick="deleteBond('${bond.id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                bondList.appendChild(row);
+            });
+        }
+        
+        function renderCashList() {
+            cashList.innerHTML = '';
+            
+            if (cashData.length === 0) {
+                cashList.innerHTML = '<tr><td colspan="6" class="text-center">No cash assets added yet. Click "Add Asset" to get started.</td></tr>';
+                return;
+            }
+            
+            cashData.forEach(cash => {
+                // Calculate USD equivalent
+                const valueInUSD = convertToUSD(cash.value, cash.currency);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cash.name}</td>
+                    <td><div class="badge badge-ghost">${capitalizeFirstLetter(cash.type)}</div></td>
+                    <td>${cash.currency} ${cash.value.toFixed(2)}
+                        ${cash.currency !== 'USD' ? `<div class="text-xs opacity-70">≈ $${valueInUSD.toFixed(2)} USD</div>` : ''}
+                    </td>
+                    <td>${cash.currency}</td>
+                    <td>${cash.notes || '-'}</td>
+                    <td>
+                        <div class="flex gap-2 justify-end">
+                            <button class="btn btn-ghost btn-xs" onclick="editCash('${cash.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-error btn-xs" onclick="deleteCash('${cash.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                cashList.appendChild(row);
+            });
+        }
+        
+        // Helper functions - reusing from your original code
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+        
+        // These functions would need to be implemented to make the app fully functional
+        function updateSummary() {
+            // Calculate total portfolio value
+            let totalStockValue = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.currentPrice);
+            }, 0);
+            
+            let totalBondValue = bondData.reduce((sum, bond) => {
+                return sum + bond.currentValue;
+            }, 0);
+            
+            let totalCashValue = cashData.reduce((sum, cash) => {
+                // Convert all currencies to USD
+                const valueInUSD = convertToUSD(cash.value, cash.currency);
+                return sum + valueInUSD;
+            }, 0);
+            
+            // Calculate total portfolio value
+            const portfolioValue = totalStockValue + totalBondValue + totalCashValue;
+            
+            // Calculate total investment/cost basis
+            const totalStockCost = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.purchasePrice);
+            }, 0);
+            
+            const totalBondCost = bondData.reduce((sum, bond) => {
+                return sum + bond.purchasePrice;
+            }, 0);
+            
+            // Total cost basis (cash is always at cost)
+            const totalCost = totalStockCost + totalBondCost + totalCashValue;
+            
+            // Calculate total gain/loss
+            const totalGainLossValue = portfolioValue - totalCost;
+            const totalGainLossPercent = totalCost > 0 ? (totalGainLossValue / totalCost) * 100 : 0;
+            
+            // Calculate today's change
+            const todayChangeValue = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.change);
+            }, 0);
+            
+            const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
+            
+            // Update the DOM
+            totalValue.textContent = `$${portfolioValue.toFixed(2)}`;
+            totalGainLoss.textContent = `$${totalGainLossValue.toFixed(2)} (${totalGainLossPercent.toFixed(2)}%)`;
+            totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+            
+            todayChange.textContent = `$${todayChangeValue.toFixed(2)} (${todayChangePercent.toFixed(2)}%)`;
+            todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+            
+            totalAssets.textContent = stockData.length + bondData.length + cashData.length;
+            
+            // Update allocation chart
+            createAllocationChart();
+            
+            // Update top/worst performers lists
+            updatePerformersLists();
+        }
+
+        function updatePerformersLists() {
+            // Combine all assets for performance tracking
+            const allAssets = [
+                ...stockData.map(stock => {
+                    const gainLoss = stock.currentPrice - stock.purchasePrice;
+                    const gainLossPercent = (gainLoss / stock.purchasePrice) * 100;
+                    return {
+                        id: stock.id,
+                        name: stock.name || stock.symbol,
+                        type: 'stock',
+                        gainLossPercent: gainLossPercent,
+                        value: stock.shares * stock.currentPrice
+                    };
+                }),
+                ...bondData.map(bond => {
+                    const gainLoss = bond.currentValue - bond.purchasePrice;
+                    const gainLossPercent = (gainLoss / bond.purchasePrice) * 100;
+                    return {
+                        id: bond.id,
+                        name: bond.name,
+                        type: 'bond',
+                        gainLossPercent: gainLossPercent,
+                        value: bond.currentValue
+                    };
+                })
+            ];
+            
+            // Sort by performance
+            allAssets.sort((a, b) => b.gainLossPercent - a.gainLossPercent);
+            
+            // Get top 5 performers
+            const topPerformers = allAssets.slice(0, 5);
+            const worstPerformers = [...allAssets].sort((a, b) => a.gainLossPercent - b.gainLossPercent).slice(0, 5);
+            
+            // Render top performers
+            const topPerformersList = document.getElementById('top-performers');
+            topPerformersList.innerHTML = '';
+            topPerformers.forEach(asset => {
+                const li = document.createElement('li');
+                li.className = 'py-1';
+                li.innerHTML = `
+                    <div class="flex justify-between">
+                        <span>${asset.name} (${capitalizeFirstLetter(asset.type)})</span>
+                        <span class="${asset.gainLossPercent >= 0 ? 'text-success' : 'text-error'}">${asset.gainLossPercent.toFixed(2)}%</span>
+                    </div>
+                `;
+                topPerformersList.appendChild(li);
+            });
+            
+            // Render worst performers
+            const worstPerformersList = document.getElementById('worst-performers');
+            worstPerformersList.innerHTML = '';
+            worstPerformers.forEach(asset => {
+                const li = document.createElement('li');
+                li.className = 'py-1';
+                li.innerHTML = `
+                    <div class="flex justify-between">
+                        <span>${asset.name} (${capitalizeFirstLetter(asset.type)})</span>
+                        <span class="${asset.gainLossPercent >= 0 ? 'text-success' : 'text-error'}">${asset.gainLossPercent.toFixed(2)}%</span>
+                    </div>
+                `;
+                worstPerformersList.appendChild(li);
+            });
+        }
+        
+        // Fetches current stock prices
+        function fetchStockPrices() {
+            if (stockData.length === 0) return;
+            
+            // Show loading indicator
+            document.getElementById('refresh-btn').classList.add('loading');
+            
+            // Get all unique symbols
+            const symbols = [...new Set(stockData.map(stock => stock.symbol))];
+            
+            // Use Alpha Vantage API (free tier)
+            const promises = symbols.map(symbol => {
+                const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=DEMO`;
+                return fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        try {
+                            // Parse the response
+                            const quoteData = data['Global Quote'];
+                            if (quoteData && quoteData['05. price']) {
+                                const price = parseFloat(quoteData['05. price']);
+                                const change = parseFloat(quoteData['09. change']);
+                                const changePercent = parseFloat(quoteData['10. change percent'].replace('%', ''));
+                                
+                                // Update all stocks with this symbol
+                                stockData.forEach(stock => {
+                                    if (stock.symbol === symbol) {
+                                        stock.currentPrice = price;
+                                        stock.change = change;
+                                        stock.changePercent = changePercent;
+                                    }
+                                });
+                                
+                                return { symbol, success: true };
+                            }
+                            return { symbol, success: false, error: 'No price data found' };
+                        } catch (error) {
+                            return { symbol, success: false, error: error.message };
+                        }
+                    })
+                    .catch(error => {
+                        return { symbol, success: false, error: error.message };
+                    });
+            });
+            
+            // Wait for all API calls to complete
+            Promise.allSettled(promises)
+                .then(results => {
+                    // Update localStorage with new prices
+                    saveStockData();
+                    
+                    // Re-render the stock list with updated prices
+                    renderStockList();
+                    
+                    // Update the summary stats
+                    updateSummary();
+                    
+                    // Remove loading indicator
+                    document.getElementById('refresh-btn').classList.remove('loading');
+                    
+                    // Show a toast with results
+                    const successCount = results.filter(r => r.value && r.value.success).length;
+                    const failCount = results.length - successCount;
+                    
+                    if (failCount > 0) {
+                        showToast(`Updated ${successCount} stocks. ${failCount} failed.`, 'warning');
+                    } else {
+                        showToast(`Successfully updated ${successCount} stock prices!`, 'success');
+                    }
+                });
+        }
+        
+        // Fetches detailed stock information
+        function fetchStockDetails(symbol) {
+            const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=DEMO`;
+            
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.Name) {
+                        return {
+                            name: data.Name,
+                            sector: data.Sector,
+                            industry: data.Industry,
+                            description: data.Description
+                        };
+                    }
+                    return null;
+                })
+                .catch(() => {
+                    return null;
+                });
+        }
+        
+        // Add a toast notification system
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} fixed bottom-4 right-4 w-auto max-w-sm z-50`;
+            toast.innerHTML = `<span>${message}</span>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 3000);
+        }
+        
+        // Replace the createAllocationChart function with this fixed version:
+
+        function createAllocationChart() {
+            // Calculate total values for each asset class with proper currency conversion
+            const totalStockValue = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.currentPrice);
+            }, 0);
+            
+            const totalBondValue = bondData.reduce((sum, bond) => {
+                return sum + bond.currentValue;
+            }, 0);
+            
+            // Fix the cash conversion here - use convertToUSD for each cash asset
+            const totalCashValue = cashData.reduce((sum, cash) => {
+                // Convert non-USD currencies to USD
+                return sum + convertToUSD(cash.value, cash.currency);
+            }, 0);
+
+            // Rest of the function remains the same...
+            const ctx = document.getElementById('allocation-chart');
+            
+            // Clear previous chart instance if it exists
+            if (window.allocationChart) {
+                window.allocationChart.destroy();
+            }
+            
+            // Check if there's any data to display
+            const totalValue = totalStockValue + totalBondValue + totalCashValue;
+            
+            if (totalValue <= 0) {
+                // Display placeholder text when no data
+                const container = ctx.parentElement;
+                ctx.style.display = 'none';
+                
+                // Check if we already have a placeholder
+                let placeholder = container.querySelector('.chart-placeholder');
+                if (!placeholder) {
+                    placeholder = document.createElement('div');
+                    placeholder.className = 'chart-placeholder flex justify-center items-center h-80';
+                    placeholder.innerHTML = `
+                        <div class="text-center opacity-60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <p>No asset data available.<br>Add stocks, bonds, or cash to see your allocation.</p>
+                        </div>
+                    `;
+                    container.appendChild(placeholder);
+                }
+                return;
+            }
+            
+            // Remove placeholder if it exists
+            const placeholder = ctx.parentElement.querySelector('.chart-placeholder');
+            if (placeholder) {
+                placeholder.remove();
+            }
+            
+            // Make sure canvas is visible
+            ctx.style.display = 'block';
+            
+            // Create or update the chart
+            window.allocationChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Stocks', 'Bonds', 'Cash & Others'],
+                    datasets: [{
+                        data: [totalStockValue, totalBondValue, totalCashValue],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',  // Blue for stocks
+                            'rgba(255, 159, 64, 0.7)',  // Orange for bonds
+                            'rgba(75, 192, 192, 0.7)'   // Green for cash
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 20
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 14
+                                },
+                                padding: 20,
+                                boxWidth: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update asset summary table
+            updateAssetSummary(totalStockValue, totalBondValue, totalCashValue, totalValue);
+        }
+
+        // Add this new function to update the asset summary table
+        function updateAssetSummary(stockValue, bondValue, cashValue, totalValue) {
+            const assetSummary = document.getElementById('asset-summary');
+            if (!assetSummary) return;
+            
+            assetSummary.innerHTML = '';
+            
+            // Add rows for each asset type
+            const rows = [
+                { type: 'Stocks', count: stockData.length, value: stockValue },
+                { type: 'Bonds', count: bondData.length, value: bondValue },
+                { type: 'Cash & Others', count: cashData.length, value: cashValue },
+                { type: 'Total', count: stockData.length + bondData.length + cashData.length, value: totalValue, isTotal: true }
+            ];
+            
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = row.isTotal ? 'font-bold border-t-2' : '';
+                
+                const percentage = totalValue > 0 ? (row.value / totalValue) * 100 : 0;
+                
+                tr.innerHTML = `
+                    <td>${row.type}</td>
+                    <td>${row.count}</td>
+                    <td>$${row.value.toFixed(2)} ${row.type === 'Cash & Others' && cashData.some(c => c.currency !== 'USD') ? 
+                        '<span class="text-xs opacity-70">(USD equiv.)</span>' : 
+                        ''}</td>
+                    <td>${row.isTotal ? '' : percentage.toFixed(2) + '%'}</td>
+                `;
+                
+                assetSummary.appendChild(tr);
+            });
+        }
+        
+        // Delete functions
+        function deleteStock(id) {
+            stockData = stockData.filter(stock => stock.id !== id);
+            saveStockData();
+            renderStockList();
+            updateSummary();
+        }
+        
+        function deleteBond(id) {
+            bondData = bondData.filter(bond => bond.id !== id);
+            saveBondData();
+            renderBondList();
+            updateSummary();
+        }
+        
+        function deleteCash(id) {
+            cashData = cashData.filter(cash => cash.id !== id);
+            saveCashData();
+            renderCashList();
+            updateSummary();
+        }
+
+        // Add these new functions
+
+        // Set up search functionality
+        function setupStockSearch() {
+            const searchInput = document.getElementById('stock-search');
+            const clearSearchBtn = document.getElementById('clear-search-btn');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    renderStockList();
+                });
+                
+                clearSearchBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    renderStockList();
+                });
+            }
+        }
+
+        // Edit stock function
+        function editStock(id) {
+            const stock = stockData.find(s => s.id === id);
+            if (!stock) return;
+            
+            // Fill the form with stock data
+            document.getElementById('edit-stock-id').value = stock.id;
+            document.getElementById('edit-stock-symbol').value = stock.symbol;
+            document.getElementById('edit-stock-name').value = stock.name || '';
+            document.getElementById('edit-stock-shares').value = stock.shares;
+            document.getElementById('edit-stock-price').value = stock.purchasePrice;
+            document.getElementById('edit-stock-date').value = stock.purchaseDate;
+            
+            // Show the modal
+            document.getElementById('edit-stock-modal').showModal();
+        }
+
+        // Handle edit stock form submission
+        function handleEditStock(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit-stock-id').value;
+            const symbol = document.getElementById('edit-stock-symbol').value.toUpperCase();
+            const name = document.getElementById('edit-stock-name').value;
+            const shares = parseFloat(document.getElementById('edit-stock-shares').value);
+            const price = parseFloat(document.getElementById('edit-stock-price').value);
+            const date = document.getElementById('edit-stock-date').value;
+            
+            // Find the stock index
+            const stockIndex = stockData.findIndex(s => s.id === id);
+            if (stockIndex === -1) return;
+            
+            // Update the stock data
+            const currentStock = stockData[stockIndex];
+            const oldSymbol = currentStock.symbol;
+            
+            // Update with new values, preserving existing values not in the form
+            stockData[stockIndex] = {
+                ...currentStock,
+                symbol,
+                name: name || symbol,
+                shares,
+                purchasePrice: price,
+                purchaseDate: date
+            };
+            
+            // If symbol changed, update current price too
+            if (symbol !== oldSymbol) {
+                fetchStockDetails(symbol)
+                    .then(data => {
+                        if (data) {
+                            stockData[stockIndex].name = data.name || symbol;
+                            // Only update current price if we get a valid price
+                            if (data.price) {
+                                stockData[stockIndex].currentPrice = data.price;
+                            }
+                            saveStockData();
+                            renderStockList();
+                            updateSummary();
+                        }
+                    });
+            }
+            
+            // Save changes
+            saveStockData();
+            renderStockList();
+            updateSummary();
+            
+            // Close modal
+            document.getElementById('edit-stock-modal').close();
+            showToast('Stock updated successfully', 'success');
+        }
+
+        // Add these constants at the top of your script section
+        const exchangeRates = {
+            USD: 1,
+            // Other rates will be filled dynamically
+        };
+
+        // Add this function to fetch current exchange rates
+        async function fetchExchangeRates() {
+            try {
+                // Show loading toast
+                showToast('Fetching latest currency exchange rates...', 'info');
+                
+                // Use ExchangeRate-API's free endpoint
+                const response = await fetch('https://open.er-api.com/v6/latest/USD');
+                const data = await response.json();
+                
+                if (data && data.rates) {
+                    // Update our rates with the latest data
+                    Object.keys(data.rates).forEach(currency => {
+                        // For our conversion function, we need 1/rate since the API gives USD to other currencies
+                        exchangeRates[currency] = 1 / data.rates[currency];
+                    });
+                    
+                    // Save rates to localStorage with timestamp
+                    localStorage.setItem('exchangeRates', JSON.stringify({
+                        rates: exchangeRates,
+                        timestamp: Date.now()
+                    }));
+                    
+                    showToast('Currency exchange rates updated!', 'success');
+                    
+                    // Update any displays that use exchange rates
+                    renderCashList();
+                    updateSummary();
+                    updateExchangeRatesTable();
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error fetching exchange rates:', error);
+                showToast('Failed to update exchange rates. Using saved rates.', 'error');
+            }
+        }
+
+        // Function to convert any currency to USD using our rates
+        function convertToUSD(amount, currency) {
+            if (!currency || currency === 'USD') return amount;
+            
+            const exchangeRate = exchangeRates[currency.toUpperCase()];
+            if (!exchangeRate) {
+                console.warn(`Exchange rate for ${currency} not found, using 1:1 rate`);
+                return amount;
+            }
+            
+            return amount * exchangeRate;
+        }
+
+        // Function to update the exchange rates table in the UI
+        function updateExchangeRatesTable() {
+            const container = document.getElementById('exchange-rates-container');
+            if (!container) return;
+            
+            const timestamp = localStorage.getItem('exchangeRates')
+                ? JSON.parse(localStorage.getItem('exchangeRates')).timestamp
+                : null;
+            
+            const formattedDate = timestamp
+                ? new Date(timestamp).toLocaleString()
+                : 'Not available';
+            
+            let html = `
+                <h3 class="card-title">Currency Exchange Rates</h3>
+                <p class="text-sm mb-2">All values in the summary are converted to USD using these rates.</p>
+                <p class="text-xs mb-4">Last updated: ${formattedDate}</p>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs">
+                        <thead>
+                            <tr>
+                                <th>Currency</th>
+                                <th>1 USD equals</th>
+                                <th>1 Unit to USD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Get cash currencies used in the portfolio
+            const usedCurrencies = new Set(['USD']);
+            cashData.forEach(cash => {
+                usedCurrencies.add(cash.currency.toUpperCase());
+            });
+            
+            // Show all currencies used in the portfolio plus some common ones
+            const commonCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'THB', 'CNY'];
+            const allCurrencies = new Set([...usedCurrencies, ...commonCurrencies]);
+            
+            allCurrencies.forEach(currency => {
+                if (!exchangeRates[currency]) return;
+                
+                const toUsd = exchangeRates[currency];
+                const fromUsd = 1 / toUsd;
+                
+                html += `
+                    <tr class="${usedCurrencies.has(currency) && currency !== 'USD' ? 'font-medium' : ''}">
+                        <td>${currency}</td>
+                        <td>${fromUsd.toFixed(4)} ${currency}</td>
+                        <td>${toUsd.toFixed(4)} USD</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button class="btn btn-sm btn-ghost" onclick="fetchExchangeRates()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Update Rates
+                    </button>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Add Cash edit functionality
+        function editCash(id) {
+            const cash = cashData.find(c => c.id === id);
+            if (!cash) return;
+            
+            // Show edit modal
+            const modal = document.createElement('dialog');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-box">
+                    <h3 class="font-bold text-lg">Edit Cash Asset</h3>
+                    <form id="edit-cash-form" class="py-4">
+                        <input type="hidden" id="edit-cash-id" value="${cash.id}" />
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Asset Name</span>
+                            </label>
+                            <input type="text" id="edit-cash-name" value="${cash.name}" placeholder="e.g. Savings Account" class="input input-bordered w-full" required />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Type</span>
+                            </label>
+                            <select id="edit-cash-type" class="select select-bordered w-full" required>
+                                <option value="cash" ${cash.type === 'cash' ? 'selected' : ''}>Cash</option>
+                                <option value="savings" ${cash.type === 'savings' ? 'selected' : ''}>Savings</option>
+                                <option value="cd" ${cash.type === 'cd' ? 'selected' : ''}>Certificate of Deposit</option>
+                                <option value="crypto" ${cash.type === 'crypto' ? 'selected' : ''}>Cryptocurrency</option>
+                                <option value="other" ${cash.type === 'other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Value</span>
+                            </label>
+                            <input type="number" id="edit-cash-value" value="${cash.value}" placeholder="e.g. 5000" step="0.01" class="input input-bordered w-full" required />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Currency</span>
+                            </label>
+                            <input type="text" id="edit-cash-currency" value="${cash.currency}" placeholder="e.g. USD" class="input input-bordered w-full" required />
+                        </div>
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">Notes</span>
+                            </label>
+                            <textarea id="edit-cash-notes" class="textarea textarea-bordered w-full">${cash.notes || ''}</textarea>
+                        </div>
+                        <div class="modal-action">
+                            <button type="button" class="btn btn-outline close-edit-modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+                <form method="dialog" class="modal-backdrop">
+                    <button>close</button>
+                </form>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.showModal();
+            
+            // Handle form submission
+            const form = modal.querySelector('#edit-cash-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const id = document.getElementById('edit-cash-id').value;
+                const name = document.getElementById('edit-cash-name').value;
+                const type = document.getElementById('edit-cash-type').value;
+                const value = parseFloat(document.getElementById('edit-cash-value').value);
+                const currency = document.getElementById('edit-cash-currency').value.toUpperCase();
+                const notes = document.getElementById('edit-cash-notes').value;
+                
+                // Find the cash index
+                const cashIndex = cashData.findIndex(c => c.id === id);
+                if (cashIndex === -1) return;
+                
+                // Update cash data
+                cashData[cashIndex] = {
+                    ...cashData[cashIndex],
+                    name,
+                    type,
+                    value,
+                    currency,
+                    notes
+                };
+                
+                // Save changes
+                saveCashData();
+                renderCashList();
+                updateSummary();
+                
+                // Close modal
+                modal.close();
+                setTimeout(() => {
+                    document.body.removeChild(modal);
+                }, 300);
+                
+                showToast('Cash asset updated successfully', 'success');
+            });
+            
+            // Handle cancel
+            modal.querySelector('.close-edit-modal').addEventListener('click', () => {
+                modal.close();
+                setTimeout(() => {
+                    document.body.removeChild(modal);
+                }, 300);
+            });
+        }
+    </script>
+</body>
+</html>
