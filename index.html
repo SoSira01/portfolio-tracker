@@ -2666,26 +2666,101 @@
                 // Loading is replaced by results, so we don't need to do anything here
             }
             
-            // Function to search stock symbols using Alpha Vantage API
-            async function searchStockSymbols(query) {
-                // Use Alpha Vantage's SYMBOL_SEARCH endpoint
-                const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=DEMO`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data && data.bestMatches) {
-                    return data.bestMatches.map(match => ({
-                        symbol: match['1. symbol'],
-                        name: match['2. name'],
-                        type: match['3. type'],
-                        region: match['4. region'],
-                        currency: match['8. currency']
-                    }));
-                }
-                
-                return [];
-            }
+            // Function to search stock symbols using Alpha Vantage with rate limiting
+async function searchStockSymbols(query) {
+    try {
+        // First check cache to avoid unnecessary API calls
+        const cacheKey = `stock_search_${query.toLowerCase()}`;
+        const cachedResults = sessionStorage.getItem(cacheKey);
+        
+        if (cachedResults) {
+            return JSON.parse(cachedResults);
+        }
+        
+        // We'll use Alpha Vantage's symbol search API (consistent with your price fetching)
+        const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=DEMO`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.bestMatches && data.bestMatches.length > 0) {
+            // Format results to match our expected structure
+            const results = data.bestMatches.map(match => ({
+                symbol: match['1. symbol'],
+                name: match['2. name'],
+                type: match['3. type'],
+                region: match['4. region'],
+                currency: match['8. currency']
+            }));
+            
+            // Cache results for this query to avoid hitting rate limits
+            sessionStorage.setItem(cacheKey, JSON.stringify(results));
+            
+            return results;
+        }
+        
+        // Check if we got an API limit error
+        if (data.Note && data.Note.includes('API call frequency')) {
+            console.warn('Alpha Vantage API limit reached, using fallback data');
+            return searchFallback(query);
+        }
+        
+        // If no results from Alpha Vantage, try the fallback search
+        return searchFallback(query);
+    } catch (error) {
+        console.warn('Alpha Vantage search failed:', error);
+        return searchFallback(query);
+    }
+}
+
+// Fallback search function when Alpha Vantage fails
+function searchFallback(query) {
+    // First, check for explicit ETF searches (important since Alpha Vantage sometimes misses these)
+    if (query.toLowerCase() === 'voo' || query.toUpperCase() === 'VOO') {
+        return [{
+            symbol: 'VOO',
+            name: 'Vanguard S&P 500 ETF',
+            type: 'ETF',
+            region: 'United States',
+            currency: 'USD'
+        }];
+    }
+    
+    // Comprehensive fallback list of common stocks and ETFs
+    const commonSecurities = [
+        // Popular ETFs
+        {symbol: 'VOO', name: 'Vanguard S&P 500 ETF', region: 'United States', currency: 'USD', type: 'ETF'},
+        {symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', region: 'United States', currency: 'USD', type: 'ETF'},
+        {symbol: 'QQQ', name: 'Invesco QQQ Trust', region: 'United States', currency: 'USD', type: 'ETF'},
+        {symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', region: 'United States', currency: 'USD', type: 'ETF'},
+        {symbol: 'VXUS', name: 'Vanguard Total International Stock ETF', region: 'United States', currency: 'USD', type: 'ETF'},
+        
+        // Major banks (including Bank of America)
+        {symbol: 'BAC', name: 'Bank of America Corp', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'JPM', name: 'JPMorgan Chase & Co.', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'WFC', name: 'Wells Fargo & Co', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        
+        // Tech giants
+        {symbol: 'AAPL', name: 'Apple Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'MSFT', name: 'Microsoft Corporation', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'GOOGL', name: 'Alphabet Inc. (Class A)', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'AMZN', name: 'Amazon.com, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'TSLA', name: 'Tesla, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        
+        // Other common stocks
+        {symbol: 'NFLX', name: 'Netflix, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'NVDA', name: 'NVIDIA Corporation', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'DIS', name: 'The Walt Disney Company', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'FB', name: 'Meta Platforms, Inc. (Class A)', region: 'United States', currency: 'USD', type: 'Common Stock'},
+        {symbol: 'BABA', name: 'Alibaba Group Holding Limited', region: 'United States', currency: 'USD', type: 'Common Stock'}
+    ];
+    
+    // Filter the fallback list by query
+    return commonSecurities.filter(security => 
+        security.symbol.toLowerCase().includes(query.toLowerCase()) || 
+        security.name.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 15);
+}
             
             // Render search results in the dropdown
             function renderSearchResults(results) {
