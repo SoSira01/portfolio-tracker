@@ -1545,78 +1545,92 @@
         // These functions would need to be implemented to make the app fully functional
         // Update the updateSummary function to use the new formatting helper
         function updateSummary() {
-            // Calculate total portfolio value
-            let totalStockValue = stockData.reduce((sum, stock) => {
-                return sum + (stock.shares * stock.currentPrice);
-            }, 0);
-            
-            let totalBondValue = bondData.reduce((sum, bond) => {
-                return sum + bond.currentValue;
-            }, 0);
-            
-            let totalGoldValue = goldData.reduce((sum, gold) => {
-                return sum + (gold.weight * gold.currentPrice);
-            }, 0);
-            
-            let totalCashValue = cashData.reduce((sum, cash) => {
-                // Convert all currencies to USD
-                const valueInUSD = convertToUSD(cash.value, cash.currency);
-                return sum + valueInUSD;
-            }, 0);
-            
-            // Calculate total portfolio value
-            const portfolioValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
-            
-            // Calculate total investment/cost basis
-            const totalStockCost = stockData.reduce((sum, stock) => {
-                return sum + (stock.shares * stock.purchasePrice);
-            }, 0);
-            
-            const totalBondCost = bondData.reduce((sum, bond) => {
-                return sum + bond.purchasePrice;
-            }, 0);
+    // Calculate total portfolio value
+    let totalStockValue = stockData.reduce((sum, stock) => {
+        return sum + (stock.shares * stock.currentPrice);
+    }, 0);
+    
+    let totalBondValue = bondData.reduce((sum, bond) => {
+        return sum + bond.currentValue;
+    }, 0);
+    
+    let totalGoldValue = goldData.reduce((sum, gold) => {
+        return sum + (gold.weight * gold.currentPrice);
+    }, 0);
+    
+    let totalCashValue = cashData.reduce((sum, cash) => {
+        // Convert all currencies to USD
+        const valueInUSD = convertToUSD(cash.value, cash.currency);
+        return sum + valueInUSD;
+    }, 0);
+    
+    // Calculate total portfolio value
+    const portfolioValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
+    
+    // Calculate total investment/cost basis
+    const totalStockCost = stockData.reduce((sum, stock) => {
+        return sum + (stock.shares * stock.purchasePrice);
+    }, 0);
+    
+    const totalBondCost = bondData.reduce((sum, bond) => {
+        return sum + bond.purchasePrice;
+    }, 0);
 
-            const totalGoldCost = goldData.reduce((sum, gold) => {
-                return sum + (gold.weight * gold.purchasePrice);
-            }, 0);
-            
-            // Total cost basis (cash is always at cost)
-            const totalCost = totalStockCost + totalBondCost + totalGoldCost + totalCashValue;
-            
-            // Calculate total gain/loss
-            const totalGainLossValue = portfolioValue - totalCost;
-            const totalGainLossPercent = totalCost > 0 ? (totalGainLossValue / totalCost) * 100 : 0;
-            
-            // Calculate today's change
-            const todayChangeValue = stockData.reduce((sum, stock) => {
-                return sum + (stock.shares * stock.change);
-            }, 0);
-            
-            const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
-            
-            // Update the DOM with formatted numbers
-            // Add THB equivalent to the portfolio value display
-            let thbDisplay = '';
-            if (exchangeRates['THB']) {
-                const valueInTHB = portfolioValue * (1 / exchangeRates['THB']);
-                thbDisplay = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
-            }
-            
-            totalValue.innerHTML = `$${formatCurrency(portfolioValue)}${thbDisplay}`;
-            totalGainLoss.textContent = `$${formatCurrency(totalGainLossValue)} (${totalGainLossPercent.toFixed(2)}%)`;
-            totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
-            
-            todayChange.textContent = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)`;
-            todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
-            
-            totalAssets.textContent = stockData.length + bondData.length + goldData.length + cashData.length;
-            
-            // Update allocation chart
-            createAllocationChart();
-            
-            // Update top/worst performers lists
-            updatePerformersLists();
-        }
+    const totalGoldCost = goldData.reduce((sum, gold) => {
+        return sum + (gold.weight * gold.purchasePrice);
+    }, 0);
+    
+    // Total cost basis (cash is always at cost)
+    const totalCost = totalStockCost + totalBondCost + totalGoldCost + totalCashValue;
+    
+    // Calculate total gain/loss
+    const totalGainLossValue = portfolioValue - totalCost;
+    const totalGainLossPercent = totalCost > 0 ? (totalGainLossValue / totalCost) * 100 : 0;
+    
+    // Calculate today's change
+    const todayChangeValue = stockData.reduce((sum, stock) => {
+        return sum + (stock.shares * stock.change);
+    }, 0);
+    
+    const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
+    
+    // Check if we have THB exchange rate and calculate THB values
+    const hasTHB = exchangeRates['THB'] ? true : false;
+    
+    // Add THB equivalent to the portfolio value display
+    let thbDisplay = '';
+    let thbGainLoss = '';
+    let thbTodayChange = '';
+    
+    if (hasTHB) {
+        // Calculate THB values
+        const thbRate = 1 / exchangeRates['THB'];
+        const valueInTHB = portfolioValue * thbRate;
+        const gainLossInTHB = totalGainLossValue * thbRate;
+        const todayChangeInTHB = todayChangeValue * thbRate;
+        
+        // Format display strings
+        thbDisplay = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
+        thbGainLoss = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(gainLossInTHB)} THB</div>`;
+        thbTodayChange = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(todayChangeInTHB)} THB</div>`;
+    }
+    
+    // Update the DOM with formatted numbers
+    totalValue.innerHTML = `$${formatCurrency(portfolioValue)}${thbDisplay}`;
+    totalGainLoss.innerHTML = `$${formatCurrency(totalGainLossValue)} (${totalGainLossPercent.toFixed(2)}%)${thbGainLoss}`;
+    totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+    
+    todayChange.innerHTML = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)${thbTodayChange}`;
+    todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+    
+    totalAssets.textContent = stockData.length + bondData.length + goldData.length + cashData.length;
+    
+    // Update allocation chart
+    createAllocationChart();
+    
+    // Update top/worst performers lists
+    updatePerformersLists();
+}
 
         function updatePerformersLists() {
             // Combine all assets for performance tracking
@@ -1949,6 +1963,10 @@
             const assetSummary = document.getElementById('asset-summary');
             if (!assetSummary) return;
             
+            // Check if we have THB exchange rate
+            const hasTHB = exchangeRates['THB'] ? true : false;
+            const thbRate = hasTHB ? 1 / exchangeRates['THB'] : 0;
+            
             assetSummary.innerHTML = '';
             
             // Add rows for each asset type
@@ -1966,12 +1984,17 @@
                 
                 const percentage = totalValue > 0 ? (row.value / totalValue) * 100 : 0;
                 
+                // Calculate THB value
+                const thbValue = hasTHB ? row.value * thbRate : 0;
+                const thbDisplay = hasTHB && row.isTotal ? 
+                    `<div class="text-xs">≈ ฿${formatCurrency(thbValue)} THB</div>` : '';
+                
                 tr.innerHTML = `
                     <td>${row.type}</td>
                     <td>${row.count}</td>
                     <td>$${row.value.toFixed(2)} ${row.type === 'Cash & Others' && cashData.some(c => c.currency !== 'USD') ? 
                         '<span class="text-xs opacity-70">(USD equiv.)</span>' : 
-                        ''}</td>
+                        ''}${row.isTotal ? thbDisplay : ''}</td>
                     <td>${row.isTotal ? '' : percentage.toFixed(2) + '%'}</td>
                 `;
                 
