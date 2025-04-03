@@ -1311,7 +1311,7 @@
         function loadAllData() {
             renderStockList();
             renderBondList();
-            renderGoldList(); // Add this line
+            renderGoldList(); 
             renderCashList();
             updateSummary();
         }
@@ -2914,31 +2914,117 @@
         }
 
         // Function to fetch gold price (could be connected to a real API)
-        function fetchGoldPrice() {
-            // This is a placeholder - in a real app, you'd fetch from an API
-            // For demo purposes, we'll simulate with random fluctuations
-            console.log('Fetching gold prices...');
+        async function fetchGoldPrice() {
+    try {
+        // Show loading state
+        document.getElementById('refresh-btn').classList.add('loading');
+        showToast('Fetching current gold prices...', 'info');
+
+        // Using the goldpricez.com API (free and no API key needed)
+        const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.items && data.items.length > 0) {
+            // The API returns price in USD per troy ounce directly, no need to convert
+            const goldPrice = data.items[0].xauPrice;
             
-            // Simulate API call with setTimeout
-            setTimeout(() => {
-                // Get the current gold price (could be fetched from an API)
-                const baseGoldPrice = 2000; // Base price around $2000/oz
-                const randomFluctuation = (Math.random() * 100) - 50; // -$50 to +$50
-                
-                const currentGoldPrice = baseGoldPrice + randomFluctuation;
-                
-                // Update all gold items
-                goldData.forEach(gold => {
-                    gold.currentPrice = currentGoldPrice;
-                });
-                
-                // Save and update
-                saveGoldData();
-                renderGoldList();
-                updateSummary();
-                
-                console.log(`Updated gold price: $${currentGoldPrice.toFixed(2)}`);
-            }, 1000);
+            // Update all gold items with the latest price
+            goldData.forEach(gold => {
+                gold.currentPrice = goldPrice;
+            });
+            
+            // Save and update UI
+            saveGoldData();
+            renderGoldList();
+            updateSummary();
+            
+            // Cache the gold price with timestamp
+            localStorage.setItem('goldPriceData', JSON.stringify({
+                price: goldPrice,
+                timestamp: Date.now()
+            }));
+            
+            showToast(`Gold price updated: $${formatCurrency(goldPrice)}/oz`, 'success');
+        } else {
+            throw new Error('Invalid data format from API');
+        }
+    } catch (error) {
+        console.error('Error fetching gold price:', error);
+        
+        // Use a fallback method for demo/testing
+        fallbackGoldPriceUpdate();
+        
+        showToast('Could not fetch gold price, using estimated price', 'warning');
+    } finally {
+        // Hide loading state
+        document.getElementById('refresh-btn').classList.remove('loading');
+    }
+}
+
+        // Fallback method to update gold prices when API fails
+        function fallbackGoldPriceUpdate() {
+            // Use a more realistic price based on recent market data
+            const baseGoldPrice = 2350; // Close to recent price as of 2023-2024
+            const randomFluctuation = (Math.random() * 40) - 20; // -$20 to +$20 fluctuation
+            
+            const currentGoldPrice = baseGoldPrice + randomFluctuation;
+            
+            // Update all gold items
+            goldData.forEach(gold => {
+                gold.currentPrice = currentGoldPrice;
+            });
+            
+            // Save and update
+            saveGoldData();
+            renderGoldList();
+            updateSummary();
+            
+            console.log(`Using fallback gold price: $${currentGoldPrice.toFixed(2)}/oz`);
+        }
+
+        // Add a helper function to use cached gold price when available
+        function useGoldPriceCache() {
+            // Check if we have a cached gold price and it's less than 1 hour old
+            const cachedGoldData = localStorage.getItem('goldPriceData');
+            if (cachedGoldData) {
+                try {
+                    const { price, timestamp } = JSON.parse(cachedGoldData);
+                    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+                    
+                    // If cache is fresh (less than 1 hour old)
+                    if (timestamp > oneHourAgo) {
+                        // Use the cached price for all gold items
+                        goldData.forEach(gold => {
+                            gold.currentPrice = price;
+                        });
+                        
+                        // Update UI
+                        renderGoldList();
+                        updateSummary();
+                        
+                        console.log(`Using cached gold price: $${price}/oz from ${new Date(timestamp).toLocaleTimeString()}`);
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Error parsing cached gold data:', e);
+                }
+            }
+            
+            return false; // Cache miss or expired
+        }
+
+        // Update the original fetchGoldPrice function call to use the cache
+        function updateGoldPrices() {
+            // Try to use cached data first
+            if (!useGoldPriceCache()) {
+                // If no valid cache, fetch fresh data
+                fetchGoldPrice();
+            }
         }
 
         // Initialize and add event listeners for gold features
