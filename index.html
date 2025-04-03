@@ -994,6 +994,13 @@
         // Tab functionality
         function switchTab(tabId) {
             tabs.forEach(tab => {
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('tab-active');
+                    tab.style.color = 'black'; // Make active tab text black
+                } else {
+                    tab.classList.remove('tab-active');
+                    tab.style.color = ''; // Reset to default gray for inactive tabs
+                }
                 tab.addEventListener('click', () => switchTab(tab.dataset.tab));
             });
             
@@ -1001,8 +1008,10 @@
                 if (link.dataset.tab) {
                     if (link.dataset.tab === tabId) {
                         link.classList.add('active');
+                        link.style.color = 'black'; // Make active sidebar item black
                     } else {
                         link.classList.remove('active');
+                        link.style.color = ''; // Reset to default gray for inactive sidebar items
                     }
                 }
             });
