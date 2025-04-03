@@ -345,6 +345,7 @@
                     <div role="tablist" class="tabs tabs-lifted">
                         <a role="tab" class="tab tab-active" data-tab="stocks">Stocks</a>
                         <a role="tab" class="tab" data-tab="bonds">Bonds</a>
+                        <a role="tab" class="tab" data-tab="gold">Gold</a>
                         <a role="tab" class="tab" data-tab="cash">Cash & Others</a>
                         <a role="tab" class="tab" data-tab="overview">Portfolio Overview</a>
                     </div>
@@ -414,6 +415,34 @@
                             </thead>
                             <tbody id="bond-list">
                                 <!-- Bond data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Gold Tab Content -->
+                <div class="tab-content" id="gold-tab">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <h2 class="text-xl sm:text-2xl font-bold">Gold Holdings</h2>
+                        <button class="btn btn-primary w-full sm:w-auto" id="add-gold-btn">Add Gold</button>
+                    </div>
+                    <div class="overflow-x-auto table-responsive">
+                        <table class="table table-zebra w-full">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Weight (oz)</th>
+                                    <th>Purchase Price</th>
+                                    <th>Purchase Date</th>
+                                    <th>Current Price</th>
+                                    <th>Market Value</th>
+                                    <th>Gain/Loss</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gold-list">
+                                <!-- Gold data will be populated here -->
                             </tbody>
                         </table>
                     </div>
@@ -513,6 +542,7 @@
                 <li class="menu-title">Navigation</li>
                 <li><a data-tab="stocks" class="active">Stocks</a></li>
                 <li><a data-tab="bonds">Bonds</a></li>
+                <li><a data-tab="gold">Gold</a></li>
                 <li><a data-tab="cash">Cash & Others</a></li>
                 <li><a data-tab="overview">Portfolio Overview</a></li>
                 <li class="menu-title mt-4">Settings</li>
@@ -788,6 +818,111 @@
     </form>
 </dialog>
 
+    <!-- Add Gold Modal -->
+<dialog id="add-gold-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Add Gold</h3>
+        <form id="add-gold-form" class="py-4">
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Name/Description</span>
+                </label>
+                <input type="text" id="gold-name" placeholder="e.g. Gold Coin, Gold Bar" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Type</span>
+                </label>
+                <select id="gold-type" class="select select-bordered w-full" required>
+                    <option value="coin">Coin</option>
+                    <option value="bar">Bar</option>
+                    <option value="jewelry">Jewelry</option>
+                    <option value="etf">ETF</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Weight (oz)</span>
+                </label>
+                <input type="number" id="gold-weight" placeholder="e.g. 1.0" step="0.001" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Purchase Price (per oz)</span>
+                </label>
+                <input type="number" id="gold-price" placeholder="e.g. 1800.00" step="0.01" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Purchase Date</span>
+                </label>
+                <input type="date" id="gold-date" class="input input-bordered w-full" required />
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Gold</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Edit Gold Modal -->
+<dialog id="edit-gold-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Edit Gold</h3>
+        <form id="edit-gold-form" class="py-4">
+            <input type="hidden" id="edit-gold-id" />
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Name/Description</span>
+                </label>
+                <input type="text" id="edit-gold-name" placeholder="e.g. Gold Coin, Gold Bar" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Type</span>
+                </label>
+                <select id="edit-gold-type" class="select select-bordered w-full" required>
+                    <option value="coin">Coin</option>
+                    <option value="bar">Bar</option>
+                    <option value="jewelry">Jewelry</option>
+                    <option value="etf">ETF</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Weight (oz)</span>
+                </label>
+                <input type="number" id="edit-gold-weight" placeholder="e.g. 1.0" step="0.001" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Purchase Price (per oz)</span>
+                </label>
+                <input type="number" id="edit-gold-price" placeholder="e.g. 1800.00" step="0.01" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full">
+                <label class="label">
+                    <span class="label-text">Purchase Date</span>
+                </label>
+                <input type="date" id="edit-gold-date" class="input input-bordered w-full" required />
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn btn-outline close-modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
@@ -796,11 +931,13 @@
         let stockData = JSON.parse(localStorage.getItem('stockData')) || [];
         let bondData = JSON.parse(localStorage.getItem('bondData')) || [];
         let cashData = JSON.parse(localStorage.getItem('cashData')) || [];
+        let goldData = JSON.parse(localStorage.getItem('goldData')) || [];
         
         // DOM Elements
         const stockList = document.getElementById('stock-list');
         const bondList = document.getElementById('bond-list');
         const cashList = document.getElementById('cash-list');
+        const goldList = document.getElementById('gold-list');
         const totalValue = document.getElementById('total-value');
         const totalGainLoss = document.getElementById('total-gain-loss');
         const todayChange = document.getElementById('today-change');
@@ -810,12 +947,17 @@
         const addStockBtn = document.getElementById('add-stock-btn');
         const addBondBtn = document.getElementById('add-bond-btn');
         const addCashBtn = document.getElementById('add-cash-btn');
+        const addGoldBtn = document.getElementById('add-gold-btn');
         const addStockModal = document.getElementById('add-stock-modal');
         const addBondModal = document.getElementById('add-bond-modal');
         const addCashModal = document.getElementById('add-cash-modal');
+        const addGoldModal = document.getElementById('add-gold-modal');
+        const editGoldModal = document.getElementById('edit-gold-modal');
         const addStockForm = document.getElementById('add-stock-form');
         const addBondForm = document.getElementById('add-bond-form');
         const addCashForm = document.getElementById('add-cash-form');
+        const addGoldForm = document.getElementById('add-gold-form');
+        const editGoldForm = document.getElementById('edit-gold-form');
         
         // Tab Elements
         const tabs = document.querySelectorAll('[role="tab"]');
@@ -851,12 +993,15 @@
             addStockBtn.addEventListener('click', () => addStockModal.showModal());
             addBondBtn.addEventListener('click', () => addBondModal.showModal());
             addCashBtn.addEventListener('click', () => addCashModal.showModal());
+            addGoldBtn.addEventListener('click', () => addGoldModal.showModal());
             
             document.querySelectorAll('.close-modal').forEach(button => {
                 button.addEventListener('click', () => {
                     addStockModal.close();
                     addBondModal.close();
                     addCashModal.close();
+                    addGoldModal.close();
+                    editGoldModal.close();
                 });
             });
             
@@ -864,6 +1009,8 @@
             addStockForm.addEventListener('submit', handleAddStock);
             addBondForm.addEventListener('submit', handleAddBond);
             addCashForm.addEventListener('submit', handleAddCash);
+            addGoldForm.addEventListener('submit', handleAddGold);
+            editGoldForm.addEventListener('submit', handleEditGold);
             
             // Load data
             loadAllData();
@@ -1156,10 +1303,15 @@
         function saveCashData() {
             localStorage.setItem('cashData', JSON.stringify(cashData));
         }
+
+        function saveGoldData() {
+            localStorage.setItem('goldData', JSON.stringify(goldData));
+        }
         
         function loadAllData() {
             renderStockList();
             renderBondList();
+            renderGoldList(); // Add this line
             renderCashList();
             updateSummary();
         }
@@ -1321,6 +1473,64 @@
                 cashList.appendChild(row);
             });
         }
+
+        function renderGoldList() {
+            goldList.innerHTML = '';
+            
+            if (goldData.length === 0) {
+                goldList.innerHTML = '<tr><td colspan="9" class="text-center">No gold assets added yet. Click "Add Gold" to get started.</td></tr>';
+                return;
+            }
+            
+            // Get the current gold price (could be fetched from an API)
+            // For demo, we'll calculate an average change from purchase prices
+            const avgPriceChange = 0.05; // 5% average change
+            
+            goldData.forEach(gold => {
+                // Calculate current price (in a real app, fetch from API)
+                // For demo, we'll use the purchase price +/- a random fluctuation
+                let currentPrice;
+                if (!gold.currentPrice) {
+                    const randomChange = Math.random() * avgPriceChange * 2 - avgPriceChange; // -5% to +5%
+                    currentPrice = gold.purchasePrice * (1 + randomChange);
+                    gold.currentPrice = currentPrice;
+                } else {
+                    currentPrice = gold.currentPrice;
+                }
+                
+                const marketValue = gold.weight * currentPrice;
+                const costBasis = gold.weight * gold.purchasePrice;
+                const gainLoss = marketValue - costBasis;
+                const gainLossPercent = (gainLoss / costBasis) * 100;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${gold.name}</td>
+                    <td><div class="badge badge-outline">${capitalizeFirstLetter(gold.type)}</div></td>
+                    <td>${formatCurrency(gold.weight)}</td>
+                    <td>$${formatCurrency(gold.purchasePrice)}</td>
+                    <td>${formatDate(gold.purchaseDate)}</td>
+                    <td>$${formatCurrency(currentPrice)}</td>
+                    <td>$${formatCurrency(marketValue)}</td>
+                    <td class="${gainLoss >= 0 ? 'positive' : 'negative'}">$${formatCurrency(gainLoss)} (${gainLossPercent.toFixed(2)}%)</td>
+                    <td>
+                        <div class="flex gap-2 justify-end">
+                            <button class="btn btn-ghost btn-xs" onclick="editGold('${gold.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-error btn-xs" onclick="deleteGold('${gold.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                goldList.appendChild(row);
+            });
+        }
         
         // Helper functions - reusing from your original code
         function capitalizeFirstLetter(string) {
@@ -1344,6 +1554,10 @@
                 return sum + bond.currentValue;
             }, 0);
             
+            let totalGoldValue = goldData.reduce((sum, gold) => {
+                return sum + (gold.weight * gold.currentPrice);
+            }, 0);
+            
             let totalCashValue = cashData.reduce((sum, cash) => {
                 // Convert all currencies to USD
                 const valueInUSD = convertToUSD(cash.value, cash.currency);
@@ -1351,7 +1565,7 @@
             }, 0);
             
             // Calculate total portfolio value
-            const portfolioValue = totalStockValue + totalBondValue + totalCashValue;
+            const portfolioValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
             
             // Calculate total investment/cost basis
             const totalStockCost = stockData.reduce((sum, stock) => {
@@ -1361,9 +1575,13 @@
             const totalBondCost = bondData.reduce((sum, bond) => {
                 return sum + bond.purchasePrice;
             }, 0);
+
+            const totalGoldCost = goldData.reduce((sum, gold) => {
+                return sum + (gold.weight * gold.purchasePrice);
+            }, 0);
             
             // Total cost basis (cash is always at cost)
-            const totalCost = totalStockCost + totalBondCost + totalCashValue;
+            const totalCost = totalStockCost + totalBondCost + totalGoldCost + totalCashValue;
             
             // Calculate total gain/loss
             const totalGainLossValue = portfolioValue - totalCost;
@@ -1391,7 +1609,7 @@
             todayChange.textContent = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)`;
             todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
             
-            totalAssets.textContent = stockData.length + bondData.length + cashData.length;
+            totalAssets.textContent = stockData.length + bondData.length + goldData.length + cashData.length;
             
             // Update allocation chart
             createAllocationChart();
@@ -1423,6 +1641,17 @@
                         type: 'bond',
                         gainLossPercent: gainLossPercent,
                         value: bond.currentValue
+                    };
+                }),
+                ...goldData.map(gold => {
+                    const gainLoss = gold.currentPrice - gold.purchasePrice;
+                    const gainLossPercent = (gainLoss / gold.purchasePrice) * 100;
+                    return {
+                        id: gold.id,
+                        name: gold.name,
+                        type: 'gold',
+                        gainLossPercent: gainLossPercent,
+                        value: gold.weight * gold.currentPrice
                     };
                 })
             ];
@@ -1599,6 +1828,10 @@
                 return sum + bond.currentValue;
             }, 0);
             
+            const totalGoldValue = goldData.reduce((sum, gold) => {
+                return sum + (gold.weight * gold.currentPrice);
+            }, 0);
+            
             // Fix the cash conversion here - use convertToUSD for each cash asset
             const totalCashValue = cashData.reduce((sum, cash) => {
                 // Convert non-USD currencies to USD
@@ -1614,7 +1847,7 @@
             }
             
             // Check if there's any data to display
-            const totalValue = totalStockValue + totalBondValue + totalCashValue;
+            const totalValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
             
             if (totalValue <= 0) {
                 // Display placeholder text when no data
@@ -1652,17 +1885,19 @@
             window.allocationChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Stocks', 'Bonds', 'Cash & Others'],
+                    labels: ['Stocks', 'Bonds', 'Gold', 'Cash & Others'],
                     datasets: [{
-                        data: [totalStockValue, totalBondValue, totalCashValue],
+                        data: [totalStockValue, totalBondValue, totalGoldValue, totalCashValue],
                         backgroundColor: [
                             'rgba(54, 162, 235, 0.7)',  // Blue for stocks
                             'rgba(255, 159, 64, 0.7)',  // Orange for bonds
+                            'rgba(255, 215, 0, 0.7)',   // Gold color for gold
                             'rgba(75, 192, 192, 0.7)'   // Green for cash
                         ],
                         borderColor: [
                             'rgba(54, 162, 235, 1)',
                             'rgba(255, 159, 64, 1)',
+                            'rgba(255, 215, 0, 1)',
                             'rgba(75, 192, 192, 1)'
                         ],
                         borderWidth: 1
@@ -1706,11 +1941,11 @@
             });
             
             // Update asset summary table
-            updateAssetSummary(totalStockValue, totalBondValue, totalCashValue, totalValue);
+            updateAssetSummary(totalStockValue, totalBondValue, totalGoldValue, totalCashValue, totalValue);
         }
 
         // Add this new function to update the asset summary table
-        function updateAssetSummary(stockValue, bondValue, cashValue, totalValue) {
+        function updateAssetSummary(stockValue, bondValue, goldValue, cashValue, totalValue) {
             const assetSummary = document.getElementById('asset-summary');
             if (!assetSummary) return;
             
@@ -1720,8 +1955,9 @@
             const rows = [
                 { type: 'Stocks', count: stockData.length, value: stockValue },
                 { type: 'Bonds', count: bondData.length, value: bondValue },
+                { type: 'Gold', count: goldData.length, value: goldValue },
                 { type: 'Cash & Others', count: cashData.length, value: cashValue },
-                { type: 'Total', count: stockData.length + bondData.length + cashData.length, value: totalValue, isTotal: true }
+                { type: 'Total', count: stockData.length + bondData.length + goldData.length + cashData.length, value: totalValue, isTotal: true }
             ];
             
             rows.forEach(row => {
@@ -1765,6 +2001,15 @@
             updateSummary();
         }
 
+        function deleteGold(id) {
+            goldData = goldData.filter(gold => gold.id !== id);
+            saveGoldData();
+            renderGoldList();
+            updateSummary();
+            
+            showToast('Gold asset deleted successfully', 'warning');
+        }
+
         // Add these new functions
 
         // Set up search functionality
@@ -1799,6 +2044,23 @@
             
             // Show the modal
             document.getElementById('edit-stock-modal').showModal();
+        }
+
+        // Function to edit gold
+        function editGold(id) {
+            const gold = goldData.find(g => g.id === id);
+            if (!gold) return;
+            
+            // Fill the form with gold data
+            document.getElementById('edit-gold-id').value = gold.id;
+            document.getElementById('edit-gold-name').value = gold.name;
+            document.getElementById('edit-gold-type').value = gold.type;
+            document.getElementById('edit-gold-weight').value = gold.weight;
+            document.getElementById('edit-gold-price').value = gold.purchasePrice;
+            document.getElementById('edit-gold-date').value = gold.purchaseDate;
+            
+            // Show the modal
+            editGoldModal.showModal();
         }
 
         // Handle edit stock form submission
@@ -1855,6 +2117,46 @@
             // Close modal
             document.getElementById('edit-stock-modal').close();
             showToast('Stock updated successfully', 'success');
+        }
+
+        // Function to handle editing gold
+        function handleEditGold(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit-gold-id').value;
+            const name = document.getElementById('edit-gold-name').value;
+            const type = document.getElementById('edit-gold-type').value;
+            const weight = parseFloat(document.getElementById('edit-gold-weight').value);
+            const price = parseFloat(document.getElementById('edit-gold-price').value);
+            const date = document.getElementById('edit-gold-date').value;
+            
+            // Find the gold index
+            const goldIndex = goldData.findIndex(g => g.id === id);
+            if (goldIndex === -1) return;
+            
+            // Keep the current price
+            const currentPrice = goldData[goldIndex].currentPrice;
+            
+            // Update gold data
+            goldData[goldIndex] = {
+                ...goldData[goldIndex],
+                name,
+                type,
+                weight,
+                purchasePrice: price,
+                purchaseDate: date,
+                currentPrice // Preserve current price
+            };
+            
+            // Save changes
+            saveGoldData();
+            renderGoldList();
+            updateSummary();
+            
+            // Close modal
+            editGoldModal.close();
+            
+            showToast('Gold asset updated successfully', 'success');
         }
 
         // Add these constants at the top of your script section
@@ -2169,6 +2471,33 @@
                     const ws = XLSX.utils.json_to_sheet(cashExport);
                     XLSX.utils.book_append_sheet(wb, ws, "Cash");
                 }
+
+                // Create gold sheet if there's data
+                if (goldData.length > 0) {
+                    // Format gold data for export
+                    const goldExport = goldData.map(gold => {
+                        const marketValue = gold.weight * gold.currentPrice;
+                        const costBasis = gold.weight * gold.purchasePrice;
+                        const gainLoss = marketValue - costBasis;
+                        const gainLossPercent = (gainLoss / costBasis) * 100;
+                        
+                        return {
+                            Name: gold.name,
+                            Type: capitalizeFirstLetter(gold.type),
+                            'Weight (oz)': gold.weight,
+                            'Purchase Price': gold.purchasePrice,
+                            'Purchase Date': gold.purchaseDate,
+                            'Current Price': gold.currentPrice,
+                            'Market Value': marketValue,
+                            'Gain/Loss': gainLoss,
+                            'Gain/Loss %': gainLossPercent.toFixed(2) + '%'
+                        };
+                    });
+                    
+                    // Create worksheet and add to workbook
+                    const ws = XLSX.utils.json_to_sheet(goldExport);
+                    XLSX.utils.book_append_sheet(wb, ws, "Gold");
+                }
                 
                 // Create summary sheet
                 const summaryData = [];
@@ -2176,14 +2505,16 @@
                 // Calculate total values
                 const totalStockValue = stockData.reduce((sum, stock) => sum + (stock.shares * stock.currentPrice), 0);
                 const totalBondValue = bondData.reduce((sum, bond) => sum + bond.currentValue, 0);
+                const totalGoldValue = goldData.reduce((sum, gold) => sum + (gold.weight * gold.currentPrice), 0);
                 const totalCashValue = cashData.reduce((sum, cash) => sum + convertToUSD(cash.value, cash.currency), 0);
-                const portfolioTotal = totalStockValue + totalBondValue + totalCashValue;
+                const portfolioTotal = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
                 
                 // Add summary rows
                 summaryData.push({ Category: 'Stocks', 'Count': stockData.length, 'Value (USD)': totalStockValue, 'Allocation': ((totalStockValue / portfolioTotal) * 100).toFixed(2) + '%' });
                 summaryData.push({ Category: 'Bonds', 'Count': bondData.length, 'Value (USD)': totalBondValue, 'Allocation': ((totalBondValue / portfolioTotal) * 100).toFixed(2) + '%' });
+                summaryData.push({ Category: 'Gold', 'Count': goldData.length, 'Value (USD)': totalGoldValue, 'Allocation': ((totalGoldValue / portfolioTotal) * 100).toFixed(2) + '%' });
                 summaryData.push({ Category: 'Cash & Others', 'Count': cashData.length, 'Value (USD)': totalCashValue, 'Allocation': ((totalCashValue / portfolioTotal) * 100).toFixed(2) + '%' });
-                summaryData.push({ Category: 'Total Portfolio', 'Count': stockData.length + bondData.length + cashData.length, 'Value (USD)': portfolioTotal, 'Allocation': '100%' });
+                summaryData.push({ Category: 'Total Portfolio', 'Count': stockData.length + bondData.length + goldData.length + cashData.length, 'Value (USD)': portfolioTotal, 'Allocation': '100%' });
                 
                 // Create summary worksheet
                 const summaryWs = XLSX.utils.json_to_sheet(summaryData);
@@ -2547,6 +2878,94 @@
                 maximumFractionDigits: decimals
             });
         }
+
+        // Function to handle adding gold
+        function handleAddGold(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('gold-name').value;
+            const type = document.getElementById('gold-type').value;
+            const weight = parseFloat(document.getElementById('gold-weight').value);
+            const price = parseFloat(document.getElementById('gold-price').value);
+            const date = document.getElementById('gold-date').value;
+            
+            const newGold = {
+                id: Date.now().toString(),
+                name,
+                type,
+                weight,
+                purchasePrice: price,
+                purchaseDate: date,
+                // We'll fetch the current price from an API in a real app
+                currentPrice: price // Default to purchase price until updated
+            };
+            
+            goldData.push(newGold);
+            saveGoldData();
+            renderGoldList();
+            updateSummary();
+            addGoldModal.close();
+            addGoldForm.reset();
+            
+            showToast(`${name} added successfully!`, 'success');
+            
+            // In a real app, fetch the current gold price
+            fetchGoldPrice();
+        }
+
+        // Function to fetch gold price (could be connected to a real API)
+        function fetchGoldPrice() {
+            // This is a placeholder - in a real app, you'd fetch from an API
+            // For demo purposes, we'll simulate with random fluctuations
+            console.log('Fetching gold prices...');
+            
+            // Simulate API call with setTimeout
+            setTimeout(() => {
+                // Get the current gold price (could be fetched from an API)
+                const baseGoldPrice = 2000; // Base price around $2000/oz
+                const randomFluctuation = (Math.random() * 100) - 50; // -$50 to +$50
+                
+                const currentGoldPrice = baseGoldPrice + randomFluctuation;
+                
+                // Update all gold items
+                goldData.forEach(gold => {
+                    gold.currentPrice = currentGoldPrice;
+                });
+                
+                // Save and update
+                saveGoldData();
+                renderGoldList();
+                updateSummary();
+                
+                console.log(`Updated gold price: $${currentGoldPrice.toFixed(2)}`);
+            }, 1000);
+        }
+
+        // Initialize and add event listeners for gold features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get gold elements
+            addGoldBtn?.addEventListener('click', () => addGoldModal.showModal());
+            addGoldForm?.addEventListener('submit', handleAddGold);
+            editGoldForm?.addEventListener('submit', handleEditGold);
+            
+            // Load gold data
+            renderGoldList();
+            
+            // Initial gold price fetch
+            if (goldData.length > 0) {
+                fetchGoldPrice();
+            }
+            
+            // Make sure the refresh button updates gold prices too
+            const refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+                const originalRefreshClick = refreshBtn.onclick;
+                refreshBtn.onclick = function() {
+                    if (originalRefreshClick) originalRefreshClick();
+                    if (goldData.length > 0) fetchGoldPrice();
+                };
+            }
+        });
     </script>
 </body>
 </html>
