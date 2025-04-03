@@ -761,12 +761,12 @@
                     <a href="https://github.com/SoSira01" target="_blank" class="text-primary flex items-center mt-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1" viewBox="0 0 16 16">
                             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                    </svg>
+                        </svg>
                     SoSira01
                 </a>
             </div>
             <div class="divider"></div>
-            <p class="mb-2">This is my first version of an Asset Portfolio Tracker that helps you manage and monitor your investments across different asset classes.</p>
+            <p class="mb-2">An Asset Portfolio Tracker that helps you manage and monitor your investments across different asset classes.</p>
             <p class="mb-2">Features:</p>
             <ul class="list-disc list-inside ml-4">
                 <li>Track stocks, bonds, and cash assets in one place</li>
@@ -775,7 +775,7 @@
                 <li>Real-time price updates for stocks</li>
                 <li>Responsive design for desktop and mobile</li>
             </ul>
-            <p class="mt-4 text-sm opacity-75">Version 1.0 - Created 2025</p>
+            <p class="mt-4 text-sm opacity-75">Version 1.5 - Created 2025</p>
         </div>
         <div class="modal-action">
             <form method="dialog">
@@ -999,10 +999,10 @@
             tabs.forEach(tab => {
                 if (tab.dataset.tab === tabId) {
                     tab.classList.add('tab-active');
-                    tab.style.color = 'black'; // Make active tab text black
+                    tab.style.color = ''; // Remove hardcoded color and let the theme handle it
                 } else {
                     tab.classList.remove('tab-active');
-                    tab.style.color = ''; // Reset to default gray for inactive tabs
+                    tab.style.color = ''; // Reset to default color from theme
                 }
                 tab.addEventListener('click', () => switchTab(tab.dataset.tab));
             });
@@ -1011,10 +1011,10 @@
                 if (link.dataset.tab) {
                     if (link.dataset.tab === tabId) {
                         link.classList.add('active');
-                        link.style.color = 'black'; // Make active sidebar item black
+                        link.style.color = ''; // Remove hardcoded color and let the theme handle it
                     } else {
                         link.classList.remove('active');
-                        link.style.color = ''; // Reset to default gray for inactive sidebar items
+                        link.style.color = ''; // Reset to default color from theme
                     }
                 }
             });
@@ -1198,11 +1198,11 @@
                 row.innerHTML = `
                     <td>${stock.symbol}</td>
                     <td>${stock.name || stock.symbol}</td>
-                    <td>${stock.shares.toFixed(2)}</td>
-                    <td>$${stock.purchasePrice.toFixed(2)}</td>
-                    <td>$${stock.currentPrice.toFixed(2)}</td>
-                    <td>$${marketValue.toFixed(2)}</td>
-                    <td class="${gainLoss >= 0 ? 'positive' : 'negative'}">$${gainLoss.toFixed(2)}</td>
+                    <td>${formatCurrency(stock.shares)}</td>
+                    <td>$${formatCurrency(stock.purchasePrice)}</td>
+                    <td>$${formatCurrency(stock.currentPrice)}</td>
+                    <td>$${formatCurrency(marketValue)}</td>
+                    <td class="${gainLoss >= 0 ? 'positive' : 'negative'}">$${formatCurrency(gainLoss)}</td>
                     <td class="${gainLossPercent >= 0 ? 'positive' : 'negative'}">${gainLossPercent.toFixed(2)}%</td>
                     <td>
                         <div class="flex gap-2 justify-end">
@@ -1287,12 +1287,19 @@
                 // Calculate USD equivalent
                 const valueInUSD = convertToUSD(cash.value, cash.currency);
                 
+                // For USD, also show THB equivalent (if THB rate exists)
+                let thbEquivalent = '';
+                if (cash.currency === 'USD' && exchangeRates['THB']) {
+                    const valueInTHB = cash.value * (1 / exchangeRates['THB']);
+                    thbEquivalent = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
+                }
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cash.name}</td>
                     <td><div class="badge badge-ghost">${capitalizeFirstLetter(cash.type)}</div></td>
-                    <td>${cash.currency} ${cash.value.toFixed(2)}
-                        ${cash.currency !== 'USD' ? `<div class="text-xs opacity-70">≈ $${valueInUSD.toFixed(2)} USD</div>` : ''}
+                    <td>${cash.currency} ${formatCurrency(cash.value)}
+                        ${cash.currency !== 'USD' ? `<div class="text-xs opacity-70">≈ $${formatCurrency(valueInUSD)} USD</div>` : thbEquivalent}
                     </td>
                     <td>${cash.currency}</td>
                     <td>${cash.notes || '-'}</td>
@@ -1326,6 +1333,7 @@
         }
         
         // These functions would need to be implemented to make the app fully functional
+        // Update the updateSummary function to use the new formatting helper
         function updateSummary() {
             // Calculate total portfolio value
             let totalStockValue = stockData.reduce((sum, stock) => {
@@ -1368,12 +1376,19 @@
             
             const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
             
-            // Update the DOM
-            totalValue.textContent = `$${portfolioValue.toFixed(2)}`;
-            totalGainLoss.textContent = `$${totalGainLossValue.toFixed(2)} (${totalGainLossPercent.toFixed(2)}%)`;
+            // Update the DOM with formatted numbers
+            // Add THB equivalent to the portfolio value display
+            let thbDisplay = '';
+            if (exchangeRates['THB']) {
+                const valueInTHB = portfolioValue * (1 / exchangeRates['THB']);
+                thbDisplay = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
+            }
+            
+            totalValue.innerHTML = `$${formatCurrency(portfolioValue)}${thbDisplay}`;
+            totalGainLoss.textContent = `$${formatCurrency(totalGainLossValue)} (${totalGainLossPercent.toFixed(2)}%)`;
             totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
             
-            todayChange.textContent = `$${todayChangeValue.toFixed(2)} (${todayChangePercent.toFixed(2)}%)`;
+            todayChange.textContent = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)`;
             todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
             
             totalAssets.textContent = stockData.length + bondData.length + cashData.length;
@@ -2520,6 +2535,16 @@
                 } else {
                     table.classList.remove('mobile-optimized');
                 }
+            });
+        }
+
+        // First, let's add a number formatting helper function
+
+        // Add this after your other helper functions
+        function formatCurrency(amount, decimals = 2) {
+            return amount.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
             });
         }
     </script>
