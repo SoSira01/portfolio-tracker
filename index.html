@@ -1543,94 +1543,93 @@
         }
         
         // These functions would need to be implemented to make the app fully functional
-        // Update the updateSummary function to use the new formatting helper
         function updateSummary() {
-    // Calculate total portfolio value
-    let totalStockValue = stockData.reduce((sum, stock) => {
-        return sum + (stock.shares * stock.currentPrice);
-    }, 0);
-    
-    let totalBondValue = bondData.reduce((sum, bond) => {
-        return sum + bond.currentValue;
-    }, 0);
-    
-    let totalGoldValue = goldData.reduce((sum, gold) => {
-        return sum + (gold.weight * gold.currentPrice);
-    }, 0);
-    
-    let totalCashValue = cashData.reduce((sum, cash) => {
-        // Convert all currencies to USD
-        const valueInUSD = convertToUSD(cash.value, cash.currency);
-        return sum + valueInUSD;
-    }, 0);
-    
-    // Calculate total portfolio value
-    const portfolioValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
-    
-    // Calculate total investment/cost basis
-    const totalStockCost = stockData.reduce((sum, stock) => {
-        return sum + (stock.shares * stock.purchasePrice);
-    }, 0);
-    
-    const totalBondCost = bondData.reduce((sum, bond) => {
-        return sum + bond.purchasePrice;
-    }, 0);
+            // Calculate total portfolio value
+            let totalStockValue = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.currentPrice);
+            }, 0);
+            
+            let totalBondValue = bondData.reduce((sum, bond) => {
+                return sum + bond.currentValue;
+            }, 0);
+            
+            let totalGoldValue = goldData.reduce((sum, gold) => {
+                return sum + (gold.weight * gold.currentPrice);
+            }, 0);
+            
+            let totalCashValue = cashData.reduce((sum, cash) => {
+                // Convert all currencies to USD
+                const valueInUSD = convertToUSD(cash.value, cash.currency);
+                return sum + valueInUSD;
+            }, 0);
+            
+            // Calculate total portfolio value
+            const portfolioValue = totalStockValue + totalBondValue + totalGoldValue + totalCashValue;
+            
+            // Calculate total investment/cost basis
+            const totalStockCost = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.purchasePrice);
+            }, 0);
+            
+            const totalBondCost = bondData.reduce((sum, bond) => {
+                return sum + bond.purchasePrice;
+            }, 0);
 
-    const totalGoldCost = goldData.reduce((sum, gold) => {
-        return sum + (gold.weight * gold.purchasePrice);
-    }, 0);
-    
-    // Total cost basis (cash is always at cost)
-    const totalCost = totalStockCost + totalBondCost + totalGoldCost + totalCashValue;
-    
-    // Calculate total gain/loss
-    const totalGainLossValue = portfolioValue - totalCost;
-    const totalGainLossPercent = totalCost > 0 ? (totalGainLossValue / totalCost) * 100 : 0;
-    
-    // Calculate today's change
-    const todayChangeValue = stockData.reduce((sum, stock) => {
-        return sum + (stock.shares * stock.change);
-    }, 0);
-    
-    const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
-    
-    // Check if we have THB exchange rate and calculate THB values
-    const hasTHB = exchangeRates['THB'] ? true : false;
-    
-    // Add THB equivalent to the portfolio value display
-    let thbDisplay = '';
-    let thbGainLoss = '';
-    let thbTodayChange = '';
-    
-    if (hasTHB) {
-        // Calculate THB values
-        const thbRate = 1 / exchangeRates['THB'];
-        const valueInTHB = portfolioValue * thbRate;
-        const gainLossInTHB = totalGainLossValue * thbRate;
-        const todayChangeInTHB = todayChangeValue * thbRate;
-        
-        // Format display strings
-        thbDisplay = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
-        thbGainLoss = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(gainLossInTHB)} THB</div>`;
-        thbTodayChange = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(todayChangeInTHB)} THB</div>`;
-    }
-    
-    // Update the DOM with formatted numbers
-    totalValue.innerHTML = `$${formatCurrency(portfolioValue)}${thbDisplay}`;
-    totalGainLoss.innerHTML = `$${formatCurrency(totalGainLossValue)} (${totalGainLossPercent.toFixed(2)}%)${thbGainLoss}`;
-    totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
-    
-    todayChange.innerHTML = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)${thbTodayChange}`;
-    todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
-    
-    totalAssets.textContent = stockData.length + bondData.length + goldData.length + cashData.length;
-    
-    // Update allocation chart
-    createAllocationChart();
-    
-    // Update top/worst performers lists
-    updatePerformersLists();
-}
+            const totalGoldCost = goldData.reduce((sum, gold) => {
+                return sum + (gold.weight * gold.purchasePrice);
+            }, 0);
+            
+            // Total cost basis (cash is always at cost)
+            const totalCost = totalStockCost + totalBondCost + totalGoldCost + totalCashValue;
+            
+            // Calculate total gain/loss
+            const totalGainLossValue = portfolioValue - totalCost;
+            const totalGainLossPercent = totalCost > 0 ? (totalGainLossValue / totalCost) * 100 : 0;
+            
+            // Calculate today's change
+            const todayChangeValue = stockData.reduce((sum, stock) => {
+                return sum + (stock.shares * stock.change);
+            }, 0);
+            
+            const todayChangePercent = portfolioValue > 0 ? (todayChangeValue / portfolioValue) * 100 : 0;
+            
+            // Check if we have THB exchange rate and calculate THB values
+            const hasTHB = exchangeRates['THB'] ? true : false;
+            
+            // Add THB equivalent to the portfolio value display
+            let thbDisplay = '';
+            let thbGainLoss = '';
+            let thbTodayChange = '';
+            
+            if (hasTHB) {
+                // Calculate THB values
+                const thbRate = 1 / exchangeRates['THB'];
+                const valueInTHB = portfolioValue * thbRate;
+                const gainLossInTHB = totalGainLossValue * thbRate;
+                const todayChangeInTHB = todayChangeValue * thbRate;
+                
+                // Format display strings
+                thbDisplay = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(valueInTHB)} THB</div>`;
+                thbGainLoss = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(gainLossInTHB)} THB</div>`;
+                thbTodayChange = `<div class="text-xs opacity-70">≈ ฿${formatCurrency(todayChangeInTHB)} THB</div>`;
+            }
+            
+            // Update the DOM with formatted numbers
+            totalValue.innerHTML = `$${formatCurrency(portfolioValue)}${thbDisplay}`;
+            totalGainLoss.innerHTML = `$${formatCurrency(totalGainLossValue)} (${totalGainLossPercent.toFixed(2)}%)${thbGainLoss}`;
+            totalGainLoss.className = totalGainLossValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+            
+            todayChange.innerHTML = `$${formatCurrency(todayChangeValue)} (${todayChangePercent.toFixed(2)}%)${thbTodayChange}`;
+            todayChange.className = todayChangeValue >= 0 ? 'stat-value text-success' : 'stat-value text-error';
+            
+            totalAssets.textContent = stockData.length + bondData.length + goldData.length + cashData.length;
+            
+            // Update allocation chart
+            createAllocationChart();
+            
+            // Update top/worst performers lists
+            updatePerformersLists();
+        }
 
         function updatePerformersLists() {
             // Combine all assets for performance tracking
@@ -1708,7 +1707,7 @@
             });
         }
         
-        // Fetches current stock prices
+        // Fetches current stock prices using Finnhub.io API
         function fetchStockPrices() {
             if (stockData.length === 0) return;
             
@@ -1718,19 +1717,20 @@
             // Get all unique symbols
             const symbols = [...new Set(stockData.map(stock => stock.symbol))];
             
-            // Use Alpha Vantage API (free tier)
+            // Use Finnhub.io API (you'll need to sign up for a free API key)
+            const apiKey = 'cvn4a31r01ql90q1f0hgcvn4a31r01ql90q1f0i0'; 
+            
             const promises = symbols.map(symbol => {
-                const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=DEMO`;
+                const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;
                 return fetch(url)
                     .then(response => response.json())
                     .then(data => {
                         try {
                             // Parse the response
-                            const quoteData = data['Global Quote'];
-                            if (quoteData && quoteData['05. price']) {
-                                const price = parseFloat(quoteData['05. price']);
-                                const change = parseFloat(quoteData['09. change']);
-                                const changePercent = parseFloat(quoteData['10. change percent'].replace('%', ''));
+                            if (data && data.c) { // 'c' is current price in Finnhub API
+                                const price = parseFloat(data.c);
+                                const change = parseFloat(data.d); // 'd' is change
+                                const changePercent = parseFloat(data.dp); // 'dp' is percent change
                                 
                                 // Update all stocks with this symbol
                                 stockData.forEach(stock => {
@@ -1780,38 +1780,76 @@
                 });
         }
         
-        // Fetches detailed stock information
-        function fetchStockDetails(symbol) {
-            const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=DEMO`;
+        // Fetches current stock prices using Finnhub.io API
+        function fetchStockPrices() {
+            if (stockData.length === 0) return;
             
-            return fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.Name) {
-                        return {
-                            name: data.Name,
-                            sector: data.Sector,
-                            industry: data.Industry,
-                            description: data.Description,
-                            exists: true
-                        };
-                    }
-                    
-                    // If we couldn't get details, try getting at least the price to confirm existence
-                    return fetchCurrentStockPrice(symbol)
-                        .then(priceResult => {
-                            if (priceResult && priceResult.success) {
-                                return {
-                                    name: symbol, // Default to symbol if no name found
-                                    price: priceResult.price,
-                                    exists: true
-                                };
+            // Show loading indicator
+            document.getElementById('refresh-btn').classList.add('loading');
+            
+            // Get all unique symbols
+            const symbols = [...new Set(stockData.map(stock => stock.symbol))];
+            
+            // Use Finnhub.io API (you'll need to sign up for a free API key)
+            const apiKey = 'cvn4a31r01ql90q1f0hgcvn4a31r01ql90q1f0i0'; // Your API key
+            
+            const promises = symbols.map(symbol => {
+                const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;
+                return fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        try {
+                            // Parse the response
+                            if (data && data.c) { // 'c' is current price in Finnhub API
+                                const price = parseFloat(data.c);
+                                const change = parseFloat(data.d); // 'd' is change
+                                const changePercent = parseFloat(data.dp); // 'dp' is percent change
+                                
+                                // Update all stocks with this symbol
+                                stockData.forEach(stock => {
+                                    if (stock.symbol === symbol) {
+                                        stock.currentPrice = price;
+                                        stock.change = change;
+                                        stock.changePercent = changePercent;
+                                    }
+                                });
+                                
+                                return { symbol, success: true };
                             }
-                            return null;
-                        });
-                })
-                .catch(() => {
-                    return null;
+                            return { symbol, success: false, error: 'No price data found' };
+                        } catch (error) {
+                            return { symbol, success: false, error: error.message };
+                        }
+                    })
+                    .catch(error => {
+                        return { symbol, success: false, error: error.message };
+                    });
+            });
+            
+            // Wait for all API calls to complete
+            Promise.allSettled(promises)
+                .then(results => {
+                    // Update localStorage with new prices
+                    saveStockData();
+                    
+                    // Re-render the stock list with updated prices
+                    renderStockList();
+                    
+                    // Update the summary stats
+                    updateSummary();
+                    
+                    // Remove loading indicator
+                    document.getElementById('refresh-btn').classList.remove('loading');
+                    
+                    // Show a toast with results
+                    const successCount = results.filter(r => r.value && r.value.success).length;
+                    const failCount = results.length - successCount;
+                    
+                    if (failCount > 0) {
+                        showToast(`Updated ${successCount} stocks. ${failCount} failed.`, 'warning');
+                    } else {
+                        showToast(`Successfully updated ${successCount} stock prices!`, 'success');
+                    }
                 });
         }
         
@@ -1831,7 +1869,6 @@
         }
         
         // Replace the createAllocationChart function with this fixed version:
-
         function createAllocationChart() {
             // Calculate total values for each asset class with proper currency conversion
             const totalStockValue = stockData.reduce((sum, stock) => {
@@ -2032,8 +2069,6 @@
             
             showToast('Gold asset deleted successfully', 'warning');
         }
-
-        // Add these new functions
 
         // Set up search functionality
         function setupStockSearch() {
@@ -2558,36 +2593,22 @@
             }
         }
 
-        // Add this new function to specifically fetch current price
+        // Fetches current price for a single stock symbol
         function fetchCurrentStockPrice(symbol) {
-            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=DEMO`;
+            const apiKey = 'cvn4a31r01ql90q1f0hgcvn4a31r01ql90q1f0i0';
+            const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;
             
             return fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     try {
                         // Parse the response
-                        const quoteData = data['Global Quote'];
-                        if (quoteData && quoteData['05. price']) {
-                            const price = parseFloat(quoteData['05. price']);
-                            const change = parseFloat(quoteData['09. change']);
-                            const changePercent = parseFloat(quoteData['10. change percent'].replace('%', ''));
+                        if (data && data.c) { // 'c' is current price in Finnhub API
+                            const price = parseFloat(data.c);
+                            const change = parseFloat(data.d || 0); // 'd' is change
+                            const changePercent = parseFloat(data.dp || 0); // 'dp' is percent change
                             
-                            // Update all stocks with this symbol
-                            stockData.forEach(stock => {
-                                if (stock.symbol === symbol) {
-                                    stock.currentPrice = price;
-                                    stock.change = change;
-                                    stock.changePercent = changePercent;
-                                }
-                            });
-                            
-                            // Save and update display
-                            saveStockData();
-                            renderStockList();
-                            updateSummary();
-                            
-                            return { symbol, price, success: true };
+                            return { symbol, price, change, changePercent, success: true };
                         }
                         return { symbol, success: false, error: 'No price data found' };
                     } catch (error) {
@@ -2599,270 +2620,71 @@
                 });
         }
 
+        // Fetches detailed stock information using Finnhub.io
+        function fetchStockDetails(symbol) {
+            const apiKey = 'cvn4a31r01ql90q1f0hgcvn4a31r01ql90q1f0i0'; // Your API key
+            const url = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${apiKey}`;
+            
+            return fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.name) {
+                        return {
+                            name: data.name,
+                            sector: data.finnhubIndustry,
+                            industry: data.finnhubIndustry,
+                            description: data.description || '',
+                            exists: true
+                        };
+                    }
+                    
+                    // If we couldn't get details, try getting at least the price to confirm existence
+                    return fetchCurrentStockPrice(symbol)
+                        .then(priceResult => {
+                            if (priceResult && priceResult.success) {
+                                return {
+                                    name: symbol, // Default to symbol if no name found
+                                    price: priceResult.price,
+                                    exists: true
+                                };
+                            }
+                            return null;
+                        });
+                })
+                .catch(() => {
+                    return null;
+                });
+        }
+        
+        // Debounce helper function to limit how often a function can be called
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
         // Add this new function for the stock symbol autocomplete with API integration
         function setupStockSymbolAutocomplete() {
             const symbolInput = document.getElementById('stock-symbol');
             if (!symbolInput) return;
-            
-            // Create autocomplete container
-            let autocompleteContainer = document.createElement('div');
-            autocompleteContainer.className = 'bg-base-100 shadow-lg rounded-md mt-1 absolute z-50 w-full max-h-60 overflow-y-auto hidden';
-            autocompleteContainer.id = 'symbol-autocomplete';
-            
-            // Position the container properly
-            symbolInput.parentNode.style.position = 'relative';
-            symbolInput.parentNode.appendChild(autocompleteContainer);
-            
-            // Add event listeners for input
+
+            // Remove the autocomplete container and related logic
             symbolInput.addEventListener('input', debounce(function() {
                 const query = symbolInput.value.trim();
                 if (query.length < 1) {
-                    autocompleteContainer.classList.add('hidden');
                     return;
                 }
-                
-                // Show loading indicator
-                showLoading();
-                
-                // Search for stocks using API
-                searchStockSymbols(query)
-                    .then(results => {
-                        renderSearchResults(results);
-                    })
-                    .catch(error => {
-                        console.error('Error searching stocks:', error);
-                        autocompleteContainer.innerHTML = `
-                            <div class="p-3 text-sm text-error">
-                                Error searching for stocks. Please try again.
-                            </div>
-                        `;
-                        autocompleteContainer.classList.remove('hidden');
-                    })
-                    .finally(() => {
-                        hideLoading();
-                    });
-            }, 500)); // Debounce to prevent too many API calls
-            
-            // Hide autocomplete when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!symbolInput.contains(e.target) && !autocompleteContainer.contains(e.target)) {
-                    autocompleteContainer.classList.add('hidden');
-                }
-            });
-            
-            // Show loading indicator
-            function showLoading() {
-                autocompleteContainer.innerHTML = `
-                    <div class="flex items-center justify-center p-4">
-                        <div class="loading loading-spinner loading-sm"></div>
-                        <span class="ml-2">Searching symbols...</span>
-                    </div>
-                `;
-                autocompleteContainer.classList.remove('hidden');
-            }
-            
-            // Hide loading indicator
-            function hideLoading() {
-                // Loading is replaced by results, so we don't need to do anything here
-            }
-            
-            // Function to search stock symbols using Alpha Vantage with rate limiting
-async function searchStockSymbols(query) {
-    try {
-        // First check cache to avoid unnecessary API calls
-        const cacheKey = `stock_search_${query.toLowerCase()}`;
-        const cachedResults = sessionStorage.getItem(cacheKey);
-        
-        if (cachedResults) {
-            return JSON.parse(cachedResults);
-        }
-        
-        // We'll use Alpha Vantage's symbol search API (consistent with your price fetching)
-        const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=DEMO`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data && data.bestMatches && data.bestMatches.length > 0) {
-            // Format results to match our expected structure
-            const results = data.bestMatches.map(match => ({
-                symbol: match['1. symbol'],
-                name: match['2. name'],
-                type: match['3. type'],
-                region: match['4. region'],
-                currency: match['8. currency']
-            }));
-            
-            // Cache results for this query to avoid hitting rate limits
-            sessionStorage.setItem(cacheKey, JSON.stringify(results));
-            
-            return results;
-        }
-        
-        // Check if we got an API limit error
-        if (data.Note && data.Note.includes('API call frequency')) {
-            console.warn('Alpha Vantage API limit reached, using fallback data');
-            return searchFallback(query);
-        }
-        
-        // If no results from Alpha Vantage, try the fallback search
-        return searchFallback(query);
-    } catch (error) {
-        console.warn('Alpha Vantage search failed:', error);
-        return searchFallback(query);
-    }
-}
 
-// Fallback search function when Alpha Vantage fails
-function searchFallback(query) {
-    // First, check for explicit ETF searches (important since Alpha Vantage sometimes misses these)
-    if (query.toLowerCase() === 'voo' || query.toUpperCase() === 'VOO') {
-        return [{
-            symbol: 'VOO',
-            name: 'Vanguard S&P 500 ETF',
-            type: 'ETF',
-            region: 'United States',
-            currency: 'USD'
-        }];
-    }
-    
-    // Comprehensive fallback list of common stocks and ETFs
-    const commonSecurities = [
-        // Popular ETFs
-        {symbol: 'VOO', name: 'Vanguard S&P 500 ETF', region: 'United States', currency: 'USD', type: 'ETF'},
-        {symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', region: 'United States', currency: 'USD', type: 'ETF'},
-        {symbol: 'QQQ', name: 'Invesco QQQ Trust', region: 'United States', currency: 'USD', type: 'ETF'},
-        {symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', region: 'United States', currency: 'USD', type: 'ETF'},
-        {symbol: 'VXUS', name: 'Vanguard Total International Stock ETF', region: 'United States', currency: 'USD', type: 'ETF'},
-        
-        // Major banks (including Bank of America)
-        {symbol: 'BAC', name: 'Bank of America Corp', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'JPM', name: 'JPMorgan Chase & Co.', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'WFC', name: 'Wells Fargo & Co', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        
-        // Tech giants
-        {symbol: 'AAPL', name: 'Apple Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'MSFT', name: 'Microsoft Corporation', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'GOOGL', name: 'Alphabet Inc. (Class A)', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'AMZN', name: 'Amazon.com, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'TSLA', name: 'Tesla, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        
-        // Other common stocks
-        {symbol: 'NFLX', name: 'Netflix, Inc.', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'NVDA', name: 'NVIDIA Corporation', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'DIS', name: 'The Walt Disney Company', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'FB', name: 'Meta Platforms, Inc. (Class A)', region: 'United States', currency: 'USD', type: 'Common Stock'},
-        {symbol: 'BABA', name: 'Alibaba Group Holding Limited', region: 'United States', currency: 'USD', type: 'Common Stock'}
-    ];
-    
-    // Filter the fallback list by query
-    return commonSecurities.filter(security => 
-        security.symbol.toLowerCase().includes(query.toLowerCase()) || 
-        security.name.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 15);
-}
-            
-            // Render search results in the dropdown
-            function renderSearchResults(results) {
-                if (results.length === 0) {
-                    autocompleteContainer.innerHTML = `
-                        <div class="p-3 text-sm opacity-70">
-                            No matching stocks found. Try a different search term.
-                        </div>
-                    `;
-                    autocompleteContainer.classList.remove('hidden');
-                    return;
-                }
-                
-                // Group results by region
-                const resultsByRegion = {};
-                results.forEach(result => {
-                    if (!resultsByRegion[result.region]) {
-                        resultsByRegion[result.region] = [];
-                    }
-                    resultsByRegion[result.region].push(result);
-                });
-                
-                // Build the HTML for the results
-                let html = '';
-                
-                // First show US results as they're typically most relevant
-                if (resultsByRegion['United States']) {
-                    html += `<div class="text-xs font-semibold text-opacity-70 px-3 py-1 bg-base-200">United States</div>`;
-                    resultsByRegion['United States'].forEach(result => {
-                        html += createResultItemHTML(result);
-                    });
-                    delete resultsByRegion['United States']; // Remove so we don't show it twice
-                }
-                
-                // Show other regions
-                Object.keys(resultsByRegion).forEach(region => {
-                    html += `<div class="text-xs font-semibold text-opacity-70 px-3 py-1 bg-base-200">${region}</div>`;
-                    resultsByRegion[region].forEach(result => {
-                        html += createResultItemHTML(result);
-                    });
-                });
-                
-                autocompleteContainer.innerHTML = html;
-                autocompleteContainer.classList.remove('hidden');
-                
-                // Add click event handlers for each result
-                autocompleteContainer.querySelectorAll('.stock-result-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        const symbol = this.dataset.symbol;
-                        const name = this.dataset.name;
-                        
-                        // Fill the stock symbol input
-                        symbolInput.value = symbol;
-                        
-                        // Set the stock name if a field exists for it
-                        if (document.getElementById('stock-name')) {
-                            document.getElementById('stock-name').value = name;
-                        }
-                        
-                        // Fetch current price and fill it if the field exists
-                        fetchCurrentStockPrice(symbol).then(result => {
-                            if (result.success && document.getElementById('stock-price')) {
-                                document.getElementById('stock-price').value = result.price;
-                            }
-                        });
-                        
-                        // Hide the autocomplete dropdown
-                        autocompleteContainer.classList.add('hidden');
-                    });
-                });
-            }
-            
-            // Create HTML for a single search result
-            function createResultItemHTML(result) {
-                return `
-                    <div class="px-3 py-2 hover:bg-base-200 cursor-pointer stock-result-item" 
-                         data-symbol="${result.symbol}" 
-                         data-name="${result.name}">
-                        <div class="font-bold">${result.symbol}</div>
-                        <div class="text-xs">${result.name}</div>
-                        <div class="flex justify-between mt-1">
-                            <span class="text-xs opacity-70">${result.type}</span>
-                            <span class="text-xs opacity-70">${result.currency}</span>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Debounce helper function to prevent too many API calls
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
+                // Directly use the input value without fetching similar symbols
+                console.log(`Symbol entered: ${query}`);
+            }, 500)); // Debounce to prevent rapid input handling
         }
-
         // Enhance the mobile modal behavior
         function setupMobileModalBehavior() {
             // Get all modals
@@ -2967,8 +2789,6 @@ function searchFallback(query) {
             });
         }
 
-        // First, let's add a number formatting helper function
-
         // Add this after your other helper functions
         function formatCurrency(amount, decimals = 2) {
             return amount.toLocaleString('en-US', {
@@ -3013,56 +2833,56 @@ function searchFallback(query) {
 
         // Function to fetch gold price (could be connected to a real API)
         async function fetchGoldPrice() {
-    try {
-        // Show loading state
-        document.getElementById('refresh-btn').classList.add('loading');
-        showToast('Fetching current gold prices...', 'info');
+            try {
+                // Show loading state
+                document.getElementById('refresh-btn').classList.add('loading');
+                showToast('Fetching current gold prices...', 'info');
 
-        // Using the goldpricez.com API (free and no API key needed)
-        const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+                // Using the goldpricez.com API (free and no API key needed)
+                const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.items && data.items.length > 0) {
+                    // The API returns price in USD per troy ounce directly, no need to convert
+                    const goldPrice = data.items[0].xauPrice;
+                    
+                    // Update all gold items with the latest price
+                    goldData.forEach(gold => {
+                        gold.currentPrice = goldPrice;
+                    });
+                    
+                    // Save and update UI
+                    saveGoldData();
+                    renderGoldList();
+                    updateSummary();
+                    
+                    // Cache the gold price with timestamp
+                    localStorage.setItem('goldPriceData', JSON.stringify({
+                        price: goldPrice,
+                        timestamp: Date.now()
+                    }));
+                    
+                    showToast(`Gold price updated: $${formatCurrency(goldPrice)}/oz`, 'success');
+                } else {
+                    throw new Error('Invalid data format from API');
+                }
+            } catch (error) {
+                console.error('Error fetching gold price:', error);
+                
+                // Use a fallback method for demo/testing
+                fallbackGoldPriceUpdate();
+                
+                showToast('Could not fetch gold price, using estimated price', 'warning');
+            } finally {
+                // Hide loading state
+                document.getElementById('refresh-btn').classList.remove('loading');
+            }
         }
-        
-        const data = await response.json();
-        
-        if (data && data.items && data.items.length > 0) {
-            // The API returns price in USD per troy ounce directly, no need to convert
-            const goldPrice = data.items[0].xauPrice;
-            
-            // Update all gold items with the latest price
-            goldData.forEach(gold => {
-                gold.currentPrice = goldPrice;
-            });
-            
-            // Save and update UI
-            saveGoldData();
-            renderGoldList();
-            updateSummary();
-            
-            // Cache the gold price with timestamp
-            localStorage.setItem('goldPriceData', JSON.stringify({
-                price: goldPrice,
-                timestamp: Date.now()
-            }));
-            
-            showToast(`Gold price updated: $${formatCurrency(goldPrice)}/oz`, 'success');
-        } else {
-            throw new Error('Invalid data format from API');
-        }
-    } catch (error) {
-        console.error('Error fetching gold price:', error);
-        
-        // Use a fallback method for demo/testing
-        fallbackGoldPriceUpdate();
-        
-        showToast('Could not fetch gold price, using estimated price', 'warning');
-    } finally {
-        // Hide loading state
-        document.getElementById('refresh-btn').classList.remove('loading');
-    }
-}
 
         // Fallback method to update gold prices when API fails
         function fallbackGoldPriceUpdate() {
