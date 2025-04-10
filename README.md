@@ -47,11 +47,3 @@ All portfolio data is stored in your browser's local storage. To prevent data lo
 - Use the "Export Data" option to back up your portfolio regularly
 - Avoid clearing browser data without exporting first
 
-## Privacy
-
-This application processes all data locally within your browser. No data is sent to any server except when fetching market prices and exchange rates from public APIs.
-
-## License
-
-This project is available as open source under the terms of the MIT License.
-
